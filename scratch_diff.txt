@@ -1,0 +1,602 @@
+﻿diff --git a/public/app.js b/public/app.js
+index 7cd9f1c..02e081b 100644
+--- a/public/app.js
++++ b/public/app.js
+@@ -212,11 +212,15 @@ const api=async(u,o={})=>{
+ };
+ const formatBytes=b=>{b=Number(b)||0;if(b<1024)return `${b} B`;if(b<1024**2)return `${(b/1024).toFixed(1)} KB`;if(b<1024**3)return `${(b/1024**2).toFixed(1)} MB`;return `${(b/1024**3).toFixed(2)} GB`};
+ function cover(s){
+   if(!s)return fallback;
+-  if(s.cover&&!s.cover.startsWith('data:image/svg+xml'))return s.cover;
+-  if(s.b2CoverKey)return '/uploads/'+encodeURIComponent(s.b2CoverKey);
+-  if(s.id)return '/api/songs/'+encodeURIComponent(s.id)+'/cover';
++  const v = s.updatedAt ? '?v=' + encodeURIComponent(s.updatedAt) : (s.createdAt ? '?v=' + encodeURIComponent(s.createdAt) : '');
++  if(s.cover && !s.cover.startsWith('data:image/svg+xml') && !s.cover.startsWith('data:image/')){
++    return s.cover + (s.cover.includes('?') ? '&' : v);
++  }
++  if(s.cover && s.cover.startsWith('data:image/')) return s.cover;
++  if(s.b2CoverKey)return '/uploads/'+encodeURIComponent(s.b2CoverKey)+v;
++  if(s.id)return '/api/songs/'+encodeURIComponent(s.id)+'/cover'+v;
+   return s.cover||fallback;
+ }
+ const fmt=x=>{x=Math.max(0,Math.floor(Number(x)||0));return `${Math.floor(x/60)}:${String(x%60).padStart(2,'0')}`},mins=s=>`${Math.floor(s/60)} min`;
+ let stateSaveTimer=null;
+@@ -418,9 +422,23 @@ async function refreshData({silent=false}={}){
+     api('/api/songs'),
+     api('/api/playlists?userEmail='+email).catch(()=>null),
+     api('/api/user/stats?userEmail='+email).catch(()=>null)
+   ]);
+-  const normalizedSongs=sortSongsAlphabetical(Array.isArray(nextSongs)?nextSongs:[]);
++  const incomingSongs = Array.isArray(nextSongs) ? nextSongs : [];
++  const localMap = new Map();
++  for (const s of songs) { if (s && s.id) localMap.set(s.id, s); }
++  const mergedSongList = incomingSongs.map(inc => {
++    if (!inc || !inc.id) return inc;
++    const loc = localMap.get(inc.id);
++    if (!loc) return inc;
++    const locTime = new Date(loc.updatedAt || 0).getTime();
++    const incTime = new Date(inc.updatedAt || 0).getTime();
++    if (locTime > incTime) {
++      return { ...inc, ...loc };
++    }
++    return inc;
++  });
++  const normalizedSongs=sortSongsAlphabetical(mergedSongList);
+   const remotePlaylists=Array.isArray(nextPlaylists)?nextPlaylists:[];
+   const mergedPlaylists=mergePlaylists(playlists, remotePlaylists);
+   const changed=catalogSignature(normalizedSongs)!==lastCatalogSignature || JSON.stringify(mergedPlaylists)!==JSON.stringify(playlists);
+   for(const id of offlineIds){
+@@ -607,41 +625,70 @@ function renderPage(){
+     const lastPlayed=current||r[0]||songs[0]||null;
+ 
+     m.innerHTML=`
+     <div class="homeContainer">
+-      <div class="homeHeroCard">
++      <div class="homeHeroCard dashboardHero">
+         <div class="homeHeroGlow"></div>
+         <div class="homeHeroContent">
+           <div class="homeGreetingRow">
+-            <div class="homeUserAvatar" onclick="go('settings')" role="button" tabindex="0" title="Your Profile">
+-              ${renderAvatar(56, true)}
++            <div class="homeUserAvatar" onclick="go('settings')" role="button" tabindex="0" title="Profile Settings">
++              <div class="avatarRingWrap">
++                ${renderAvatar(58, true)}
++                <span class="avatarBadgeDot" title="Online"></span>
++              </div>
+             </div>
+             <div class="homeGreetingText">
+-              <span class="eyebrow">${timeGreeting.toUpperCase()}</span>
+-              <h1>${timeGreeting}, ${esc(shownName())}</h1>
+-              <p class="sub">Welcome to your personal music space. High fidelity sound everywhere.</p>
++              <div class="dashboardEyebrowRow">
++                <span class="eyebrow"><span class="eyebrowLiveDot"></span> ${timeGreeting.toUpperCase()}</span>
++                <span class="cloudStatusTag">${svg('shield')} Verified Cloud</span>
++              </div>
++              <h1 class="dashboardGreetingTitle">${timeGreeting}, <span class="dashboardUserName">${esc(shownName())}</span></h1>
++              <p class="sub dashboardSubtitle">Your personal high-fidelity cloud space ┬╖ Lossless audio everywhere</p>
+             </div>
++            <button class="dashboardProfilePill" type="button" onclick="go('settings')" title="Manage Account & Settings">
++              ${svg('settings')} <span>Settings</span>
++            </button>
+           </div>
+-          <div class="homeQuickPills">
+-            <button class="quickPill" onclick="go('library')">
+-              <span class="pillIcon">${svg('library')}</span>
+-              <b>All Songs</b>
+-              <span class="pillCount">${songs.length}</span>
++          <div class="homeQuickPills dashboardMetricGrid">
++            <button class="quickPill metricCard" onclick="go('library')" role="button" title="View all songs in library">
++              <div class="metricCardTop">
++                <span class="pillIcon metricIcon metricIconLibrary">${svg('library')}</span>
++                <span class="metricArrow">ΓÇ║</span>
++              </div>
++              <div class="metricCardBody">
++                <span class="pillCount metricValue">${songs.length}</span>
++                <b class="metricLabel">All Songs</b>
++              </div>
+             </button>
+-            <button class="quickPill" onclick="go('favorites')">
+-              <span class="pillIcon">${svg('heart')}</span>
+-              <b>Favorites</b>
+-              <span class="pillCount">${favorites.size}</span>
++            <button class="quickPill metricCard" onclick="go('favorites')" role="button" title="View your favorite songs">
++              <div class="metricCardTop">
++                <span class="pillIcon metricIcon metricIconFav">${svg('heartFilled')}</span>
++                <span class="metricArrow">ΓÇ║</span>
++              </div>
++              <div class="metricCardBody">
++                <span class="pillCount metricValue">${favorites.size}</span>
++                <b class="metricLabel">Favorites</b>
++              </div>
+             </button>
+-            <button class="quickPill" onclick="go('playlists')">
+-              <span class="pillIcon">${svg('playlist')}</span>
+-              <b>Playlists</b>
+-              <span class="pillCount">${playlists.length}</span>
++            <button class="quickPill metricCard" onclick="go('playlists')" role="button" title="View your playlists">
++              <div class="metricCardTop">
++                <span class="pillIcon metricIcon metricIconPlaylist">${svg('playlist')}</span>
++                <span class="metricArrow">ΓÇ║</span>
++              </div>
++              <div class="metricCardBody">
++                <span class="pillCount metricValue">${playlists.length}</span>
++                <b class="metricLabel">Playlists</b>
++              </div>
+             </button>
+-            <button class="quickPill" onclick="go('downloads')">
+-              <span class="pillIcon">${svg('download')}</span>
+-              <b>Downloads</b>
+-              <span class="pillCount">${offlineDownloadCount}</span>
++            <button class="quickPill metricCard" onclick="go('downloads')" role="button" title="View offline downloaded songs">
++              <div class="metricCardTop">
++                <span class="pillIcon metricIcon metricIconDownload">${svg('download')}</span>
++                <span class="metricArrow">ΓÇ║</span>
++              </div>
++              <div class="metricCardBody">
++                <span class="pillCount metricValue">${offlineDownloadCount}</span>
++                <b class="metricLabel">Downloads</b>
++              </div>
+             </button>
+           </div>
+         </div>
+       </div>
+@@ -1033,8 +1080,10 @@ function renderPlaylist(m,id){
+   setTimeout(()=>filterAddSongs('', p.id), 50);
+ }
+ function showCollection(name,ids){const ss=(ids||[]).map(id=>songs.find(s=>s.id===id)).filter(Boolean);$('#main').innerHTML=`<button class="back" onclick="go('home')">${svg('back')} Back</button><h1>${esc(name)}</h1><p class="sub">${ss.length} songs</p><div class="collectionActions">${ss.length?`<button class="primary" onclick='playCollection(${JSON.stringify(ss.map(s=>s.id))})'>${svg('play')} Play all</button><button class="secondary" onclick='shuffleCollection(${JSON.stringify(ss.map(s=>s.id))})'>${svg('shuffle')} Shuffle</button>`:''}</div><div class="list">${ss.map(row).join('')||'<p class="sub">Nothing here yet.</p>'}</div>`}
+ let searchTimer=null;
++const searchMemo = new Map();
++let lastSearchSig='';
+ function searchNow(){
+   if(searchTimer) cancelAnimationFrame(searchTimer);
+   searchTimer=requestAnimationFrame(()=>{
+     searchTimer=null;
+@@ -1044,9 +1093,14 @@ function searchNow(){
+     if(!q){
+       results.innerHTML=`<div class="emptyStateCard"><div class="emptyStateIcon">${svg('search')}</div><h3>Search your music</h3><p>Find your favorite songs, artists, albums, or genres.</p></div>`;
+       return;
+     }
+-    const out=songs.filter(s=>[s.title,s.artist,s.album,s.genre,s.language].join(' ').toLowerCase().includes(q));
++    if(lastSearchSig !== lastCatalogSignature){ searchMemo.clear(); lastSearchSig = lastCatalogSignature; }
++    let out = searchMemo.get(q);
++    if(!out){
++      out = songs.filter(s=>[s.title,s.artist,s.album,s.genre,s.language].join(' ').toLowerCase().includes(q));
++      searchMemo.set(q, out);
++    }
+     results.innerHTML=out.length
+       ? `<div class="sectionhead"><h2>Results</h2><span class="resultCount">${out.length} song${out.length===1?'':'s'}</span></div><div class="grid">${out.map(card).join('')}</div>`
+       : `<div class="emptyStateCard"><div class="emptyStateIcon">${svg('search')}</div><h3>No results found</h3><p>No tracks matched "${esc(q)}". Try searching for another artist or title.</p></div>`;
+   });
+@@ -1085,15 +1139,28 @@ function mobileBrowse(kind){
+ }
+ function renderGroupedCollection(title,field){
+   const m=$('#pageContent');if(!m)return;
+   const groupMap = new Map();
+-  for(const s of songs){
++  for(let i=0; i<songs.length; i++){
++    const s = songs[i];
+     const g = String(s[field]||'Unknown').trim()||'Unknown';
+-    if(!groupMap.has(g)) groupMap.set(g, []);
+-    groupMap.get(g).push(s);
++    let arr = groupMap.get(g);
++    if(!arr){ arr = []; groupMap.set(g, arr); }
++    arr.push(s);
++  }
++  const sortedGroups = Array.from(groupMap.keys()).sort((a,b)=>a.localeCompare(b, undefined, {sensitivity:'base'}));
++  let html = `<div class="pageIntro"><button class="back" onclick="go('library');setMobileBrowseActive('songs')">${svg('back')} Back to songs</button><h1>${esc(title)}</h1><p class="sub">${sortedGroups.length} ${title.toLowerCase()}</p></div><div class="groupBrowse">`;
++  for(let i=0; i<sortedGroups.length; i++){
++    const g = sortedGroups[i];
++    const list = groupMap.get(g);
++    html += `<section class="groupSection"><div class="sectionhead"><h2>${esc(g)}</h2><span class="resultCount">${list.length} songs</span></div><div class="list">`;
++    for(let j=0; j<list.length; j++){
++      html += row(list[j]);
++    }
++    html += `</div></section>`;
+   }
+-  const sortedGroups = Array.from(groupMap.keys()).sort((a,b)=>a.localeCompare(b));
+-  m.innerHTML=`<div class="pageIntro"><button class="back" onclick="go('library');setMobileBrowseActive('songs')">${svg('back')} Back to songs</button><h1>${esc(title)}</h1><p class="sub">${sortedGroups.length} ${title.toLowerCase()}</p></div><div class="groupBrowse">${sortedGroups.map(g=>{const list=groupMap.get(g);return `<section class="groupSection"><div class="sectionhead"><h2>${esc(g)}</h2><span class="resultCount">${list.length} songs</span></div><div class="list">${list.map(row).join('')}</div></section>`}).join('')||'<p class="sub emptyText">No groups available yet.</p>'}</div>`;
++  html += `</div>`;
++  m.innerHTML = html;
+   setMobileBrowseActive(field==='artist'?'artists':field==='album'?'albums':'genres');
+ }
+ function toggleMobileMore(){const m=document.getElementById('mobileMoreMenu');if(!m)return;const open=m.hidden;m.hidden=!open;document.querySelector('.mobileNav .mnav:last-child')?.setAttribute('aria-expanded',open?'true':'false')}
+ function closeMobileMore(){const m=document.getElementById('mobileMoreMenu');if(m)m.hidden=true;document.querySelector('.mobileNav .mnav:last-child')?.setAttribute('aria-expanded','false')}
+@@ -1154,16 +1221,16 @@ function initWebAudioKeepAlive(){
+     if(!bgAudioContext){
+       const AudioCtx = window.AudioContext || window.webkitAudioContext;
+       bgAudioContext = new AudioCtx({ latencyHint: 'playback' });
+       bgSilentGain = bgAudioContext.createGain();
+-      bgSilentGain.gain.value = 0.0001;
++      bgSilentGain.gain.value = 0.00001;
+       bgSilentGain.connect(bgAudioContext.destination);
+-      const buffer = bgAudioContext.createBuffer(1, bgAudioContext.sampleRate * 2, bgAudioContext.sampleRate);
+-      bgSilentSource = bgAudioContext.createBufferSource();
+-      bgSilentSource.buffer = buffer;
+-      bgSilentSource.loop = true;
+-      bgSilentSource.connect(bgSilentGain);
+-      bgSilentSource.start(0);
++      const osc = bgAudioContext.createOscillator();
++      osc.type = 'sine';
++      osc.frequency.value = 20;
++      osc.connect(bgSilentGain);
++      try { osc.start(0); } catch(e) {}
++      bgSilentSource = osc;
+     }
+     if(bgAudioContext.state === 'suspended'){
+       bgAudioContext.resume().catch(()=>{});
+     }
+@@ -1208,8 +1275,16 @@ async function bindNativeListeners(){
+     nativePlaying=false;stopListenTimer();
+     await handleTrackEnded('native',endedId);
+     updateMediaPlaybackState();renderPlayer();
+   })}catch(e){console.error('native onAudioEnd registration failed',e)}
++  try{if(typeof nativeAudio.onAudioNext==='function')await nativeAudio.onAudioNext({audioId:NATIVE_AUDIO_ID},async()=>{
++    await next();
++    if(current)updateMediaSession(current);
++  })}catch(e){console.warn('native onAudioNext registration failed',e)}
++  try{if(typeof nativeAudio.onAudioPrevious==='function')await nativeAudio.onAudioPrevious({audioId:NATIVE_AUDIO_ID},async()=>{
++    await prev();
++    if(current)updateMediaSession(current);
++  })}catch(e){console.warn('native onAudioPrevious registration failed',e)}
+   try{await nativeAudio.onPlaybackStatusChange({audioId:NATIVE_AUDIO_ID},async r=>{
+     const status=String(r?.status||'');
+     if(status==='playing')nativePlaying=true;
+     else if(status==='paused'||status==='stopped')nativePlaying=false;
+@@ -1321,17 +1396,17 @@ function handleTrackEnded(source='audio',endedId='') {
+   if(!current) return;
+   const expectedId=String(endedId||current.id);
+   if(String(current.id)!==expectedId)return;
+   const now=Date.now();
+-  if(lastEndedSongId===expectedId && now-lastEndedAt<800)return;
++  if(lastEndedSongId===expectedId && now-lastEndedAt<600)return;
+   lastEndedSongId=expectedId;
+   lastEndedAt=now;
+   trackEndBusy=true;
+   const token=++endedTransitionToken;
+   try {
+     next(expectedId, token);
+   } finally {
+-    trackEndBusy=false;
++    setTimeout(()=>{ trackEndBusy=false; }, 300);
+   }
+ }
+ let remoteNetworkUsable=true;
+ let publicInternetUsable=true;
+@@ -1423,9 +1498,9 @@ function startSong(s){
+   // Synchronously update BOTH Mini Player and Full Player DOM on the same tick!
+   renderPlayer();
+   updateFullPlayer(s);
+   applyArtworkTheme(s, request);
+-  updateMediaSession(s);
++  updateMediaSession(s, 'playing');
+ 
+   // Immediately initiate playback in the same user gesture token!
+   let playPromise=null;
+   if(!nativeMode()){
+@@ -1444,8 +1519,19 @@ function startSong(s){
+       console.warn('Sync play error',e);
+     }
+   }
+ 
++  // Automatic buffer recovery for continuous playback when screen is locked
++  if(!nativeMode() && audio){
++    const onCanPlay = () => {
++      audio.removeEventListener('canplay', onCanPlay);
++      if(request === playRequest && audio.paused && !playbackPaused()){
++        audio.play().catch(e => console.debug('canplay auto-resume notice', e));
++      }
++    };
++    audio.addEventListener('canplay', onCanPlay, { once: true });
++  }
++
+   // Defer non-playback tasks to microtask so gesture token is not delayed
+   queueMicrotask(()=>{
+     if(request!==playRequest)return;
+     if(!playbackPaused())flushListening();
+@@ -1460,10 +1546,12 @@ function startSong(s){
+         updateFullPlayer(s);
+         preloadNextSong();
+       }).catch(e=>{
+         if(e?.name!=='AbortError'){
+-          console.error('Browser playback failed',e);
+-          diagnosePlaybackError(targetSrc).then(m=>toast(m)).catch(()=>toast('Tap Play to start playback'));
++          console.debug('Browser playback notice:', e);
++          if(!document.hidden){
++            diagnosePlaybackError(targetSrc).then(m=>toast(m)).catch(()=>toast('Tap Play to start playback'));
++          }
+         }
+         renderPlayer();
+         updateFullPlayer(s);
+       });
+@@ -1522,9 +1610,12 @@ function getRecentlyAddedSongs(limit = 12){
+     .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+     .slice(0, limit);
+ }
+ function next(expectedEndedId='', transitionToken=0){
+-  if(!queue.length)return;
++  if(!queue.length){
++    if(songs.length){ queue = songs.slice(); qIndex = 0; }
++    else return;
++  }
+   if(expectedEndedId && String(current?.id)!==String(expectedEndedId))return;
+   if(transitionToken && transitionToken!==endedTransitionToken)return;
+   if(repeat==='one'){
+     if(nativeMode()&&nativeReady){
+@@ -1536,10 +1627,29 @@ function next(expectedEndedId='', transitionToken=0){
+     let n=Math.floor(Math.random()*queue.length);
+     if(queue.length>1&&n===qIndex)n=(n+1)%queue.length;
+     qIndex=n;
+   }else{
+-    qIndex++;
+-    if(qIndex>=queue.length) qIndex=0;
++    if(qIndex+1>=queue.length){
++      if(repeat==='off' && queue.length >= songs.length){
++        if(nativeMode()&&nativeReady){
++          try{nativeAudio.pause({audioId:NATIVE_AUDIO_ID});nativePlaying=false}catch{}
++        }else if(audio){
++          audio.pause();
++        }
++        stopListenTimer();
++        renderPlayer();
++        updateMediaPlaybackState('paused');
++        return;
++      }
++      if(queue.length < songs.length && repeat==='off'){
++        queue = songs.slice();
++        qIndex = (qIndex + 1) % queue.length;
++      } else {
++        qIndex = 0;
++      }
++    }else{
++      qIndex++;
++    }
+   }
+   startSong(queue[qIndex]);
+ }
+ function prev(){if(!queue.length)return;if(playbackTime()>3){skip(-999999);return}qIndex=(qIndex-1+queue.length)%queue.length;startSong(queue[qIndex])}
+@@ -1648,29 +1758,34 @@ function openSongMenu(songId, anchorEl, event){
+       <button type="button" onclick="closeSongMenu();toggleFav('${s.id}')"><span class="fpMenuIco">${isFav?svg('heartFilled'):svg('heart')}</span> ${isFav?'Remove from Favorites':'Add to Favorites'}</button>
+       ${isCurrent ? `<button type="button" onclick="closeSongMenu();sleepTimer()"><span class="fpMenuIco">${svg('clock')}</span> Sleep Timer</button>` : ''}
+       <div class="fpMenuDivider"></div>
+       <button type="button" class="fpMenuAdminBtn" onclick="closeSongMenu();adminEditSong('${s.id}')"><span class="fpMenuIco">${svg('shield')}</span> Edit Song Details</button>
++      <button type="button" class="fpMenuAdminBtn danger" onclick="closeSongMenu();adminDeleteSong('${s.id}')"><span class="fpMenuIco">${svg('trash')}</span> Delete Song</button>
+     </div>
+   `;
+ 
+   document.body.appendChild(menu);
+ 
+   const anchor = anchorEl || (evt?.currentTarget) || (evt?.target?.closest('button'));
+-  if(!isMobile && anchor && typeof anchor.getBoundingClientRect === 'function'){
+-    const rect = anchor.getBoundingClientRect();
++  if(!isMobile){
+     const menuWidth = 244;
+     const menuHeight = menu.offsetHeight || 380;
+-    let left = rect.right - menuWidth;
+-    if(left < 12) left = 12;
+-    if(left + menuWidth > window.innerWidth - 12) left = window.innerWidth - menuWidth - 12;
+-    
+-    let top = rect.bottom + 6;
+-    if(top + menuHeight > window.innerHeight - 12 && rect.top > menuHeight + 12){
+-      top = rect.top - menuHeight - 6;
+-    }
+-    if(top < 12) top = 12;
+-    if(top + menuHeight > window.innerHeight - 12) {
+-      top = Math.max(12, window.innerHeight - menuHeight - 12);
++    let left = Math.round(window.innerWidth / 2 - menuWidth / 2);
++    let top = 180;
++    if(anchor && typeof anchor.getBoundingClientRect === 'function'){
++      const rect = anchor.getBoundingClientRect();
++      left = rect.right - menuWidth;
++      if(left < 12) left = 12;
++      if(left + menuWidth > window.innerWidth - 12) left = window.innerWidth - menuWidth - 12;
++      
++      top = rect.bottom + 6;
++      if(top + menuHeight > window.innerHeight - 12 && rect.top > menuHeight + 12){
++        top = rect.top - menuHeight - 6;
++      }
++      if(top < 12) top = 12;
++      if(top + menuHeight > window.innerHeight - 12) {
++        top = Math.max(12, window.innerHeight - menuHeight - 12);
++      }
+     }
+     menu.style.left = left + 'px';
+     menu.style.top = top + 'px';
+     menu.style.right = 'auto';
+@@ -2416,14 +2531,16 @@ function renderPlayer(){
+     const seekInput = existingRoot.querySelector('#seek');
+     if(seekInput && document.activeElement !== seekInput) seekInput.value = pct;
+     
+     const artImg = existingRoot.querySelector('.miniart');
+-    if(artImg && (artImg.src !== cover(current) || artImg.dataset.songId !== current.id)){
++    const targetCover = cover(current);
++    if(artImg && (artImg.dataset.coverUrl !== targetCover || artImg.dataset.songId !== current.id)){
+       artImg.dataset.songId = current.id;
++      artImg.dataset.coverUrl = targetCover;
+       artImg.classList.add('artLoading');
+       artImg.onload = () => artImg.classList.remove('artLoading');
+       artImg.onerror = () => { artImg.classList.remove('artLoading'); artImg.src = fallback; };
+-      artImg.src = cover(current);
++      artImg.src = targetCover;
+       artImg.alt = current.title;
+     }
+     const pulse = existingRoot.querySelector('.miniPulse');
+     if(pulse){
+@@ -2565,13 +2682,16 @@ function updateFullPlayer(s){
+   const isFav=favorites.has(s.id);
+   const img=fp.querySelector('.fpcover');
+   const blurredArt=fp.querySelector('.fpBlurredArt');
+   const songCoverUrl = cover(s);
+-  if(blurredArt && blurredArt.src !== songCoverUrl){
++  if(blurredArt && (blurredArt.dataset.coverUrl !== songCoverUrl || blurredArt.dataset.songId !== s.id)){
++    blurredArt.dataset.songId = s.id;
++    blurredArt.dataset.coverUrl = songCoverUrl;
+     blurredArt.src = songCoverUrl;
+   }
+-  if(img && (img.src !== songCoverUrl || img.dataset.songId !== s.id)){
++  if(img && (img.dataset.coverUrl !== songCoverUrl || img.dataset.songId !== s.id)){
+     img.dataset.songId = s.id;
++    img.dataset.coverUrl = songCoverUrl;
+     img.classList.add('artLoading');
+     img.onload = () => img.classList.remove('artLoading');
+     img.onerror = () => { img.classList.remove('artLoading'); img.src = fallback; };
+     img.src = songCoverUrl;
+@@ -2885,9 +3005,9 @@ function bindSongActivation(){
+ function toast(t){const x=document.createElement('div');x.className='toast';x.textContent=t;document.body.appendChild(x);requestAnimationFrame(()=>x.classList.add('show'));setTimeout(()=>{x.classList.remove('show');setTimeout(()=>x.remove(),180)},2200)}
+ async function renderAdmin(m){if(!owner){ownerGate();return}let st;try{st=await api('/api/admin/stats',{headers:ownerToken?{'Authorization':'Bearer '+ownerToken}:{'x-admin-key':ownerKey}})}catch{if(ownerKey&&await refreshOwnerSession()){try{st=await api('/api/admin/stats',{headers:{'Authorization':'Bearer '+ownerToken}})}catch{}}if(!st){owner=false;ownerToken='';localStorage.removeItem('synthOwnerToken');toast('Owner authorization required. Unlock Admin again.');ownerGate();return}}m.innerHTML=`<div class="adminPage"><div class="adminTopbar"><button class="adminBack" onclick="go('home')">${svg('home')}<span>Back to music</span></button><div class="adminTopIdentity"><span class="adminShield">${svg('shield')}</span><div><b>Owner Administration</b><small style="display:block;opacity:0.8;font-size:12px;margin-top:2px;">${esc(ownerEmail)}</small></div></div><button class="secondary adminExport" onclick="exportData()">${svg('download')} Export</button></div><div class="adminHero"><div><span class="eyebrow">SYNTH AUDIO ┬╖ OWNER ONLY</span><h1>Administration</h1><p class="sub">Manage your personal MP3 library, uploads and activity.</p></div><div class="adminHeroActions"><span class="ownerStatus"><i></i> Secure owner session</span><button class="primary" onclick="adminAdd()">${svg('upload')} Add music</button></div></div><div class="adminOverview"><div class="adminStatPrimary"><span>Music library</span><b>${st.songs}</b><small>songs available to users</small></div><div class="adminStat"><span>Storage used</span><b>${formatBytes(st.storageBytes)}</b><small>uploaded audio storage</small></div><div class="adminStat"><span>Listening time</span><b>${mins(st.listeningSeconds)}</b><small>total tracked listening</small></div><div class="adminStat"><span>Listeners</span><b>${st.users}</b><small>registered accounts</small></div></div><div class="adminTabs"><button class="active" onclick="adminTab(this,'manage')">${svg('library')} <span>Music library</span></button><button onclick="adminTab(this,'add')">${svg('upload')} <span>Add music</span></button><button onclick="adminTab(this,'delete')">${svg('trash')} <span>Delete music</span></button><button onclick="adminTab(this,'activity')">${svg('activity')} <span>Activity</span></button></div><div id="adminbody"></div></div>`;adminManage()}
+ function adminTab(btn,tab){document.querySelectorAll('.adminTabs button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');if(tab==='manage')adminManage();else if(tab==='add')adminAdd();else if(tab==='delete')adminDelete();else if(tab==='activity')adminActivity()}
+ function adminManage(){const b=$('#adminbody');if(!b)return;const list=songs.map(adminRow).join('');const empty=`<div class="adminEmpty"><div>${svg('library')}</div><h3>Your library is empty</h3><p>Use Add music to publish the first song.</p><button class="primary" onclick="adminAdd()">${svg('upload')} Add music</button></div>`;b.innerHTML=`<div class="adminPanel"><div class="adminPanelHead"><div><h2>Music library</h2><p class="sub">Every uploaded song shared with authorized users.</p></div><span class="countPill">${songs.length} songs</span></div><div class="adminSearchRow"><div class="searchbox">${svg('search')}<input placeholder="Search title, artist, album, language or genre..." oninput="filterAdmin(this.value)"></div></div><div id="adminsongs" class="list adminList">${list||empty}</div></div>`}
+-function adminRow(s){return `<div class="songrow adminrow"><img class="thumb" src="${esc(cover(s))}" onerror="this.onerror=null;this.src=fallback" alt="${esc(s.title)}"><div class="grow"><div class="title">${esc(s.title)}</div><div class="meta">${esc(s.artist||'Unknown Artist')} ┬╖ ${esc(s.album||'Single')}${s.genre?' ┬╖ '+esc(s.genre):''}${s.language?' ┬╖ '+esc(s.language):''}</div></div><div class="rowActions"><button class="rowbtn adminPlayBtn" onclick="playSong('${s.id}')" title="Play song" aria-label="Play">${svg('play')}</button><button class="rowbtn adminEditBtn" onclick="adminEditSong('${s.id}')" title="Edit song metadata & artwork" aria-label="Edit song">${svg('stats')}</button><button class="rowbtn danger adminDeleteBtn" onclick="adminDeleteSong('${s.id}')" title="Delete song" aria-label="Delete">${svg('trash')}</button></div></div>`}
++function adminRow(s){return `<div class="songrow adminrow"><img class="thumb" loading="lazy" decoding="async" src="${esc(cover(s))}" onerror="this.onerror=null;this.src=fallback" alt="${esc(s.title)}"><div class="grow"><div class="title">${esc(s.title)}</div><div class="meta">${esc(s.artist||'Unknown Artist')} ┬╖ ${esc(s.album||'Single')}${s.genre?' ┬╖ '+esc(s.genre):''}${s.language?' ┬╖ '+esc(s.language):''}</div></div><div class="rowActions"><button class="rowbtn adminPlayBtn" onclick="playSong('${s.id}')" title="Play song" aria-label="Play">${svg('play')}</button><button class="rowbtn adminEditBtn" onclick="adminEditSong('${s.id}')" title="Edit song metadata & artwork" aria-label="Edit song">${svg('stats')}</button><button class="rowbtn danger adminDeleteBtn" onclick="adminDeleteSong('${s.id}')" title="Delete song" aria-label="Delete">${svg('trash')}</button></div></div>`}
+ let adminSearchTimer=null;
+ function filterAdmin(q){
+   clearTimeout(adminSearchTimer);adminSearchTimer=setTimeout(()=>{
+     q=String(q||'').toLowerCase().trim();const el=$('#adminsongs');if(!el)return;
+@@ -3254,9 +3374,100 @@ async function upload(){
+     if(btn){btn.disabled=false;btn.classList.remove('loading')}
+   }
+ }
+ 
+-async function adminDeleteSong(id){const s=songs.find(x=>x.id===id);const title=s?.title||'this song';if(!confirm(`Delete "${title}" from the shared catalog? This also removes it from playlists.`))return;try{const headers=ownerToken?{'Authorization':'Bearer '+ownerToken,'x-admin-key':ownerKey}:{'x-admin-key':ownerKey};await api('/api/admin/songs/'+id,{method:'DELETE',headers});songs=sortSongsAlphabetical(await api('/api/songs'));adminManage();toast('Song deleted: '+title)}catch(e){toast(e.message||'Delete failed')}}
++async function adminDeleteSong(id){
++  const s=songs.find(x=>x.id===id);
++  const title=s?.title||'this song';
++  if(!confirm(`Delete "${title}" permanently from the catalog?\n\nThis action cannot be undone and will remove it from all playlists.`)) return;
++
++  const originalSongs=[...songs];
++  const originalPlaylists=playlists.map(p=>({...p,songIds:[...(p.songIds||[])]}));
++
++  // Immediately remove from in-memory state
++  songs=songs.filter(x=>x.id!==id);
++  try{localStorage.setItem('synthCachedSongs',JSON.stringify(songs));}catch{}
++  lastCatalogSignature=catalogSignature(songs);
++
++  // Invalidate any in-flight /api/songs cache
++  for(const [k] of apiInflight.entries()){
++    if(k.includes('/api/songs'))apiInflight.delete(k);
++  }
++
++  // Remove from favorites & recent
++  if(favorites.has(id)){
++    favorites.delete(id);
++    saveUserState();
++  }
++  recent=recent.filter(item=>(typeof item==='string'?item!==id:item?.id!==id));
++  saveUserState();
++
++  // Remove from local playlists
++  playlists.forEach(p=>{
++    if(Array.isArray(p.songIds)){
++      p.songIds=p.songIds.filter(x=>x!==id);
++    }
++  });
++
++  // Remove from offline storage if downloaded
++  if(offlineIds.has(id)){
++    offlineIds.delete(id);
++    deleteOffline(id).catch(()=>{});
++  }
++
++  // If deleted song was currently playing, transition smoothly to next song or stop cleanly
++  if(current&&current.id===id){
++    if(queue.length>1){
++      queue=queue.filter(x=>x.id!==id);
++      qIndex=Math.min(qIndex,queue.length-1);
++      next();
++    }else{
++      if(audio){audio.pause();audio.src='';}
++      current=null;
++      queue=[];
++      qIndex=0;
++      stopListenTimer();
++      updateMediaPlaybackState('none');
++      renderPlayer();
++    }
++  }else{
++    queue=queue.filter(x=>x.id!==id);
++    if(qIndex>=queue.length)qIndex=Math.max(0,queue.length-1);
++  }
++
++  // Update UI immediately
++  if(page==='admin')adminManage();
++  else renderPage();
++  renderPlayer();
++
++  toast(`Deleting "${title}"...`);
++
++  try{
++    const tokenToSend=ownerToken||authToken;
++    const storedKey=ownerKey||localStorage.getItem('synthOwnerKey')||'';
++    const authHeaders={};
++    if(tokenToSend)authHeaders['Authorization']='Bearer '+tokenToSend;
++    if(storedKey)authHeaders['x-admin-key']=storedKey;
++
++    await api('/api/admin/songs/'+id,{
++      method:'DELETE',
++      headers:authHeaders
++    });
++
++    toast(`Song deleted: "${title}"`);
++    if(page==='admin')adminManage();
++  }catch(err){
++    console.error('Delete failed',err);
++    // Rollback local state on error
++    songs=originalSongs;
++    playlists=originalPlaylists;
++    try{localStorage.setItem('synthCachedSongs',JSON.stringify(songs));}catch{}
++    if(page==='admin')adminManage();
++    else renderPage();
++    renderPlayer();
++    toast(err.message||'Song deletion failed. Check owner authorization.');
++  }
++}
+ function adminDelete(){const b=$('#adminbody');if(!b)return;const list=songs.map(adminRow).join('');b.innerHTML=`<div class="adminPanel"><div class="adminPanelHead"><div><h2>Delete music</h2><p class="sub">Remove songs permanently from the shared server library.</p></div></div><div class="list adminList">${list||'<div class="adminEmpty"><h3>No music to delete</h3><p>Your shared library is currently empty.</p></div>'}</div></div>`}
+ async function adminActivity(){const b=$('#adminbody');try{const st=await api('/api/admin/stats',{headers:ownerToken?{'Authorization':'Bearer '+ownerToken}:{'x-admin-key':ownerKey}});const events=st.events.map(activityItem).join('');b.innerHTML=`<div class="adminPanel"><div class="adminPanelHead"><div><h2>Activity overview</h2><p class="sub">A clear overview of listening and library activity.</p></div></div><div class="stats adminStats"><div class="stat"><span>Total listening</span><b>${mins(st.listeningSeconds)}</b><small>${fmt(st.listeningSeconds)} tracked</small></div><div class="stat"><span>Languages</span><b>${st.languages.length}</b><small>${esc(st.languages.join(', ')||'None yet')}</small></div><div class="stat"><span>Genres</span><b>${st.genres.length}</b><small>${esc(st.genres.join(', ')||'None yet')}</small></div><div class="stat"><span>Listeners</span><b>${st.users}</b><small>accounts with listening data</small></div></div><div class="activityHead"><h3>Recent activity</h3><span class="countPill">${st.events.length} events</span></div><div class="activitylist adminActivityList">${events||'<div class="adminEmpty compact"><h3>No activity yet</h3><p>Listening and library events will appear here.</p></div>'}</div></div>`}catch{toast('Could not load admin activity')}}
+ function exportData(){const blob=new Blob([JSON.stringify({songs,playlists},null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='synth-audio-export.json';a.click();URL.revokeObjectURL(a.href)}
+ function updateMediaSession(s, forceState){
+@@ -3661,9 +3872,9 @@ async function adminEditSong(songId){
+       const payload = { title, artist, album, genre, language };
+       if(replacementCoverBase64) payload.cover = replacementCoverBase64;
+ 
+       const tokenToSend = ownerToken || authToken;
+-      const storedKey = ownerKey || localStorage.getItem('synthOwnerKey') || 'Akil152506dp';
++      const storedKey = ownerKey || localStorage.getItem('synthOwnerKey') || '';
+       const authHeaders = {
+         'Content-Type': 'application/json'
+       };
+       if(tokenToSend) authHeaders['Authorization'] = 'Bearer ' + tokenToSend;
+@@ -3674,12 +3885,18 @@ async function adminEditSong(songId){
+         headers: authHeaders,
+         body: JSON.stringify(payload)
+       });
+ 
+-      // Update in local songs array
++      // Invalidate any in-flight /api/songs cache
++      for (const [k] of apiInflight.entries()) {
++        if (k.includes('/api/songs')) apiInflight.delete(k);
++      }
++
++      // Update in local songs array with guaranteed fresh timestamp
++      const freshUpdatedAt = updated?.updatedAt || new Date().toISOString();
+       const localIdx = songs.findIndex(x => x.id === songId);
+       if(localIdx >= 0){
+-        songs[localIdx] = { ...songs[localIdx], ...updated };
++        songs[localIdx] = { ...songs[localIdx], ...updated, updatedAt: freshUpdatedAt };
+       }
+       // Immediately persist updated catalog locally so refresh never reverts!
+       try{ localStorage.setItem('synthCachedSongs', JSON.stringify(songs)); }catch{}
+       lastCatalogSignature = catalogSignature(songs);
+@@ -3695,10 +3912,13 @@ async function adminEditSong(songId){
+       if(updated?.cover){
+         artworkColorCache.delete(songId + ':' + updated.cover);
+       }
+ 
++      // Update in queue if present
++      queue = queue.map(x => x.id === songId ? { ...x, ...updated, updatedAt: freshUpdatedAt } : x);
++
+       if(current && current.id === songId){
+-        current = { ...current, ...updated };
++        current = { ...current, ...updated, updatedAt: freshUpdatedAt };
+         renderPlayer();
+         updateFullPlayer(current);
+         updateMediaSession(current);
+       }

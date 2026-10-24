@@ -1,0 +1,17 @@
+appId: com.synthaudio.app
+productName: SYNTH AUDIO
+artifactName: SYNTH-AUDIO-${version}-Windows.${ext}
+directories:
+  output: dist
+  buildResources: public
+files:
+  - "**/*"
+  - "!android/**"
+win:
+  target:
+    - nsis
+    - portable
+  icon: public/logo-512.png
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true

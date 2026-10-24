@@ -1,0 +1,11 @@
+node_modules/
+.env
+data/uploads/
+*.mp3
+*backup*
+*snapshot*
+server-*-backup.js
+START-SYNTH-AUDIO-V65.bat
+electron/
+.vercel
+.env*

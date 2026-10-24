@@ -1,0 +1,36 @@
+{
+  "name": "synth-audio",
+  "version": "65.0.0",
+  "private": true,
+  "scripts": {
+    "server": "node server.js",
+    "desktop": "electron .",
+    "desktop:dist": "electron-builder --win --x64",
+    "android:sync": "npx cap sync android && npm run android:prepare",
+    "android:open": "npx cap open android",
+    "android:run": "npx cap run android",
+    "android:build": "npm run android:prepare && cd android && gradlew assembleDebug",
+    "android:prepare": "node scripts/prepare-android-background.js",
+    "check": "node scripts/project-check.cjs && node scripts/ui-check.cjs",
+    "test": "node scripts/smoke-test.cjs",
+    "android:setup": "npx cap add android && npm run android:prepare",
+    "start": "node scripts/start-local.cjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "main": "electron/main.cjs",
+  "devDependencies": {
+    "electron": "^38.1.0",
+    "electron-builder": "^26.0.12"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1141.0",
+    "@aws-sdk/s3-request-presigner": "^3.1142.0",
+    "@capacitor/android": "^7.4.3",
+    "@capacitor/cli": "^7.4.3",
+    "@capacitor/core": "^7.4.3",
+    "@mediagrid/capacitor-native-audio": "^2.3.2",
+    "dotenv": "^18.0.4"
+  }
+}
