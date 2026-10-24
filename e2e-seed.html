@@ -1,0 +1,3 @@
+<!doctype html><meta charset="utf-8"><script>
+(async()=>{try{const r=await fetch('/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:'e2e@example.com',password:'secret123'})});const j=await r.json();localStorage.setItem('synthUser','e2e@example.com');localStorage.setItem('synthAuthToken',j.token);location.href='/';}catch(e){document.body.textContent='SEED ERROR '+e}})();
+</script>

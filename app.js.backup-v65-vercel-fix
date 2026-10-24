@@ -1,0 +1,1012 @@
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+const icon={
+ home:'<svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>',
+ search:'<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>',
+ library:'<svg viewBox="0 0 24 24"><path d="M4 5h3v14H4zM10.5 5h3v14h-3zM17 5h3v14h-3z"/></svg>',
+ heart:'<svg viewBox="0 0 24 24"><path d="M20.8 8.7c0 5.5-8.8 10.3-8.8 10.3S3.2 14.2 3.2 8.7A4.7 4.7 0 0 1 12 6.1a4.7 4.7 0 0 1 8.8 2.6Z"/></svg>',
+ clock:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></svg>',
+ playlist:'<svg viewBox="0 0 24 24"><path d="M4 6h11M4 10h11M4 14h7M17 7v11a3 3 0 1 1-2-2.8V7l5-1v9"/></svg>',
+ download:'<svg viewBox="0 0 24 24"><path d="M12 4v10m0 0 4-4m-4 4-4-4M5 19h14"/></svg>',
+ activity:'<svg viewBox="0 0 24 24"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg>',
+ stats:'<svg viewBox="0 0 24 24"><path d="M5 19V9M12 19V5M19 19v-7"/></svg>',
+ settings:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V20h-2.6v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1A1.7 1.7 0 0 0 8 15a1.7 1.7 0 0 0-1.6-1H6v-2.6h.4A1.7 1.7 0 0 0 8 10a1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V5H15v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.1V14H21a1.7 1.7 0 0 0-1.6 1Z"/></svg>',
+ shield:'<svg viewBox="0 0 24 24"><path d="M12 3 20 6v5c0 5-3.4 8.3-8 10-4.6-1.7-8-5-8-10V6z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg>',
+ play:'<svg viewBox="0 0 24 24"><path d="m8 5 11 7-11 7z"/></svg>',
+ pause:'<svg viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg>',
+ prev:'<svg viewBox="0 0 24 24"><path d="M6 5v14M18 7l-8 5 8 5z"/></svg>',
+ rewind10:'<svg viewBox="0 0 32 24"><path d="M11 6 5 10l6 4"/><path d="M6 10h9a6 6 0 1 1-5 9"/><text x="19" y="14" font-size="8" text-anchor="middle" font-family="Arial" font-weight="700">10</text></svg>',
+ forward10:'<svg viewBox="0 0 32 24"><path d="M21 6l6 4-6 4"/><path d="M26 10h-9a6 6 0 1 0 5 9"/><text x="13" y="14" font-size="8" text-anchor="middle" font-family="Arial" font-weight="700">10</text></svg>',
+ next:'<svg viewBox="0 0 24 24"><path d="M18 5v14M6 7l8 5-8 5z"/></svg>',
+ shuffle:'<svg viewBox="0 0 24 24"><path d="M4 7h3c4 0 6 10 10 10h3M17 5l3 2-3 2M17 15l3 2-3 2M4 17h3c1.2 0 2.2-.7 3-1.7"/></svg>',
+ repeat:'<svg viewBox="0 0 24 24"><path d="M17 7H7a3 3 0 0 0 0 6h1M7 17h10a3 3 0 0 0 0-6h-1M15 5l2 2-2 2M9 15l-2 2 2 2"/></svg>',
+ queue:'<svg viewBox="0 0 24 24"><path d="M4 6h11M4 10h11M4 14h8M4 18h7M18 14v6m0 0 3-2m-3 2-3-2"/></svg>',
+ more:'<svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></svg>',
+ sync:'<svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.9-3M4 13a8 8 0 0 0 14.9 3"/><path d="M5 4v4h4M19 20v-4h-4"/></svg>',
+ close:'<svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg>',
+ back:'<svg viewBox="0 0 24 24"><path d="m14 5-7 7 7 7M7 12h13"/></svg>',
+ upload:'<svg viewBox="0 0 24 24"><path d="M12 16V4m0 0L8 8m4-4 4 4M5 19h14"/></svg>',
+ trash:'<svg viewBox="0 0 24 24"><path d="M5 7h14M10 11v5M14 11v5M8 7l1-3h6l1 3m-9 0 1 13h8l1-13"/></svg>',
+ volume:'<svg viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>',
+ volumeLow:'<svg viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>',
+ volumeMute:'<svg viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>'
+};
+const svg=n=>icon[n]||'';
+const audio=$('#audio');
+try{if(audio){audio.preload='auto';audio.setAttribute('playsinline','true');audio.setAttribute('webkit-playsinline','true');audio.setAttribute('controlslist','nodownload noplaybackrate');audio.setAttribute('x-webkit-airplay','allow');audio.setAttribute('disableRemotePlayback','false')}}catch{}
+let appVolume=Number(localStorage.getItem('synthVolume')??0.8);
+if(isNaN(appVolume)||appVolume<0)appVolume=0.8;
+if(appVolume>1)appVolume=1;
+let appMuted=localStorage.getItem('synthMuted')==='true';
+function applyVolumeToAudio(){
+  if(audio){
+    audio.volume=appMuted?0:appVolume;
+    audio.muted=appMuted;
+  }
+}
+function setAppVolume(val){
+  const num=Math.max(0,Math.min(1,Number(val)/100));
+  appVolume=num;
+  if(appMuted&&num>0)appMuted=false;
+  localStorage.setItem('synthVolume',String(appVolume));
+  localStorage.setItem('synthMuted',String(appMuted));
+  applyVolumeToAudio();
+  updateVolumeUI();
+}
+function toggleMute(){
+  appMuted=!appMuted;
+  localStorage.setItem('synthMuted',String(appMuted));
+  applyVolumeToAudio();
+  updateVolumeUI();
+}
+function getVolumeIcon(){
+  if(appMuted||appVolume===0)return svg('volumeMute');
+  if(appVolume<0.5)return svg('volumeLow');
+  return svg('volume');
+}
+function updateVolumeUI(){
+  const volPct=appMuted?0:Math.round(appVolume*100);
+  const volIcon=getVolumeIcon();
+  document.querySelectorAll('.volumeSlider').forEach(el=>{el.value=volPct});
+  document.querySelectorAll('.volumeBtn').forEach(el=>{el.innerHTML=volIcon});
+  document.querySelectorAll('.volumeValue').forEach(el=>{el.textContent=volPct+'%'});
+}
+try{applyVolumeToAudio()}catch{}
+const fallback='data:image/svg+xml,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600"><rect width="600" height="600" fill="#121217"/><circle cx="300" cy="300" r="205" fill="url(#g)"/><defs><linearGradient id="g"><stop stop-color="#a43cff"/><stop offset=".6" stop-color="#26c7e8"/><stop offset="1" stop-color="#26d59a"/></linearGradient></defs><text x="300" y="340" text-anchor="middle" fill="white" font-size="120" font-family="Arial" font-weight="800">S</text></svg>`);
+const EMAIL_RE=/^\S+@\S+\.\S+$/;
+const normalizeEmail=v=>{const e=String(v??'').trim().toLowerCase();return EMAIL_RE.test(e)?e:''};
+const normalizeServerUrl=v=>{try{const u=new URL(String(v||''));if(!/^https?:$/.test(u.protocol))return '';return u.href.replace(/\/$/,'')}catch{return ''}};
+let user=normalizeEmail(localStorage.getItem('synthUser'));
+let displayName=String(localStorage.getItem('synthDisplayName:'+user)||'').trim().slice(0,40);
+const shownName=()=>displayName||((user||'listener').split('@')[0]||'Listener');
+let songs=[],playlists=[],page='home',current=null,queue=[],qIndex=0,shuffle=false,repeat='all',authToken=localStorage.getItem('synthAuthToken')||'',owner=false,ownerCandidate=false,ownerKey=localStorage.getItem('synthOwnerKey')||'',ownerToken=localStorage.getItem('synthOwnerToken')||'',ownerEmail='';
+if(!user){localStorage.removeItem('synthUser');localStorage.removeItem('synthAuthToken');authToken='';}
+const makeId=()=>{try{if(window.crypto?.randomUUID)return window.crypto.randomUUID()}catch{}return 'req-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)};
+function safeJSON(key,fallback){try{const v=JSON.parse(localStorage.getItem(key));return v??fallback}catch{return fallback}}
+let userEvents=[];let favorites=new Set(safeJSON('favorites:'+user,[]));let recent=safeJSON('recent:'+user,[]);let listened=Number(localStorage.getItem('listenedSeconds:'+user)||0);let listenTimer=null;let offlineDownloadCount=0;let offlineIds=new Set();let sleepTimerId=null,sleepTimerEndsAt=0,sleepTimerMode='';
+const IS_NATIVE_APP=!!(window.Capacitor?.isNativePlatform?.());
+const NATIVE_CONFIG_URL=normalizeServerUrl(window.SYNTH_SERVER_URL||'');
+const API_BASE=(IS_NATIVE_APP?(NATIVE_CONFIG_URL||window.location.origin||''):(window.location.origin||'')).replace(/\/$/,'');
+const resourceUrl=(u,opts={})=>{
+  const raw=String(u||'');
+  if(!raw)return '';
+  const forNative=!!opts.forNative;
+  try{
+    const base=forNative?(window.SYNTH_SERVER_URL||API_BASE||window.location.origin):window.location.href;
+    const x=new URL(raw,base);
+    if(forNative)return x.href;
+    const host=x.hostname;
+    if(host==='localhost'||host==='127.0.0.1'||/^10\./.test(host)||/^192\.168\./.test(host)||/^172\.(1[6-9]|2\d|3[0-1])\./.test(host))return window.location.origin+x.pathname+x.search;
+    return x.href;
+  }catch{return raw.startsWith('/')?window.location.origin+raw:raw}
+};
+const apiCache=new Map();
+const apiInflight=new Map();
+async function refreshOwnerSession(){
+  if(!ownerKey)return false;
+  const email=String(ownerEmail||localStorage.getItem('synthOwnerEmail')||'').trim().toLowerCase();
+  if(!email)return false;
+  try{
+    const r=await fetch(API_BASE+'/api/admin/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,key:ownerKey}),cache:'no-store'});
+    if(!r.ok)return false;
+    const v=await r.json();
+    if(!v?.token)return false;
+    ownerToken=String(v.token);owner=true;ownerCandidate=true;ownerEmail=String(v.email||email).trim().toLowerCase();
+    localStorage.setItem('synthOwnerToken',ownerToken);
+    localStorage.setItem('synthOwnerEmail',ownerEmail);
+    return true;
+  }catch{return false}
+}
+function handleAuthExpiry(target,method){
+  if(method==='GET'&&target.includes('/api/auth/me'))return;
+  if(target.includes('/api/admin/')){
+    owner=false;ownerToken='';localStorage.removeItem('synthOwnerToken');
+    return;
+  }
+  if(authToken){authToken='';localStorage.removeItem('synthAuthToken');user='';localStorage.removeItem('synthUser');owner=false;ownerCandidate=false;ownerKey='';ownerToken='';localStorage.removeItem('synthOwnerKey');localStorage.removeItem('synthOwnerToken');localStorage.removeItem('synthOwnerEmail');
+    try{renderLogin()}catch{}
+  }
+}
+const api=async(u,o={})=>{
+  const target=/^https?:\/\//i.test(u)?u:(API_BASE+u);
+  const method=String(o.method||'GET').toUpperCase();
+  const cacheKey=method==='GET'?target:'';
+  if(method==='GET' && apiInflight.has(cacheKey) && o.__ownerRetry!==true) return apiInflight.get(cacheKey);
+  const run=(async()=>{
+    const headers=new Headers(o.headers||{});
+    if(authToken && !headers.has('Authorization'))headers.set('Authorization','Bearer '+authToken);
+    const r=await fetch(target,{...o,headers,cache:o.cache||'no-store'});
+    if(!r.ok){
+      let message='Request failed';
+      try{const j=await r.json();message=j.error||message}catch{}
+      if(r.status===401 && target.includes('/api/admin/') && o.__ownerRetry!==true && ownerKey){
+        if(await refreshOwnerSession()){
+          const retryOpts={...o,__ownerRetry:true};
+          return api(u,retryOpts);
+        }
+      }
+      if(r.status===401)handleAuthExpiry(target,method);
+      throw Error(message);
+    }
+    if(r.status===204)return null;
+    const ct=r.headers.get('content-type')||'';
+    if(ct.includes('application/json'))return r.json();
+    return r.text();
+  })();
+  if(cacheKey)apiInflight.set(cacheKey,run);
+  try{return await run}finally{if(cacheKey)apiInflight.delete(cacheKey)}
+};
+const formatBytes=b=>{b=Number(b)||0;if(b<1024)return `${b} B`;if(b<1024**2)return `${(b/1024).toFixed(1)} KB`;if(b<1024**3)return `${(b/1024**2).toFixed(1)} MB`;return `${(b/1024**3).toFixed(2)} GB`};
+function cover(s){
+  if(!s)return fallback;
+  if(s.cover&&!s.cover.startsWith('data:image/svg+xml'))return s.cover;
+  if(s.b2CoverKey)return '/uploads/'+encodeURIComponent(s.b2CoverKey);
+  if(s.id)return '/api/songs/'+encodeURIComponent(s.id)+'/cover';
+  return s.cover||fallback;
+}
+const fmt=x=>{x=Math.max(0,Math.floor(Number(x)||0));return `${Math.floor(x/60)}:${String(x%60).padStart(2,'0')}`},mins=s=>`${Math.floor(s/60)} min`;
+let stateSaveTimer=null;
+function saveUserState(){localStorage.setItem('favorites:'+user,JSON.stringify([...favorites]));localStorage.setItem('recent:'+user,JSON.stringify(recent));localStorage.setItem('listenedSeconds:'+user,String(listened));clearTimeout(stateSaveTimer);stateSaveTimer=setTimeout(()=>{api('/api/user/state',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({favorites:[...favorites],recent,displayName})}).catch(()=>{})},250)}
+async function loadRemoteUserState(){try{const st=await api('/api/user/state');if(Array.isArray(st.favorites))favorites=new Set(st.favorites);if(Array.isArray(st.recent))recent=st.recent;if(st.displayName!==undefined){displayName=String(st.displayName||'').trim().slice(0,40);localStorage.setItem('synthDisplayName:'+user,displayName)}saveUserState()}catch{}}
+async function migrateLegacyDownloads(){for(const s of songs){const raw=localStorage.getItem('download:'+s.id);if(!raw||!raw.startsWith('data:'))continue;try{const r=await fetch(raw);const b=await r.blob();await putOffline(s.id,b,{song:s,downloadedAt:Date.now()});localStorage.removeItem('download:'+s.id)}catch{}}}
+async function init(){
+  if(!user||!authToken){owner=false;ownerCandidate=false;renderLogin();return}
+  try{
+    const c=await api('/api/config');
+    ownerEmail=normalizeEmail(c?.ownerEmail);
+  }catch{
+    ownerEmail=normalizeEmail(localStorage.getItem('synthOwnerEmail'));
+  }
+  try{
+    const me=await api('/api/auth/me');
+    const remoteEmail=normalizeEmail(me?.email);
+    if(!me?.authenticated||!remoteEmail){throw Error('Session invalid')}
+    user=remoteEmail;
+    localStorage.setItem('synthUser',user);
+    displayName=String(localStorage.getItem('synthDisplayName:'+user)||'').trim().slice(0,40);
+  }catch{
+    localStorage.removeItem('synthUser');localStorage.removeItem('synthAuthToken');
+    user='';authToken='';owner=false;ownerCandidate=false;ownerToken='';
+    renderLogin();return;
+  }
+  ownerCandidate=!!ownerEmail&&user===ownerEmail;
+  favorites=new Set(safeJSON('favorites:'+user,[]));
+  recent=safeJSON('recent:'+user,[]);
+  listened=Number(localStorage.getItem('listenedSeconds:'+user)||0);
+  await mergeOfflineCatalog();
+  render();
+  if(ownerKey||ownerToken){
+    let ownerOK=false;
+    try{await api('/api/admin/stats',{headers:ownerToken?{'Authorization':'Bearer '+ownerToken}:{'x-admin-key':ownerKey}});ownerOK=true}catch{}
+    if(!ownerOK&&ownerKey) ownerOK=await refreshOwnerSession();
+    owner=ownerOK;
+  }
+  render();
+  try{await loadRemoteUserState();await refreshData()}catch{toast('Offline mode: showing downloaded music')}
+  if(location.hash==='#owner')ownerGate();
+}
+let lastCatalogSignature='';
+let downloadMigrationStarted=false;
+function catalogSignature(list){return JSON.stringify((list||[]).map(s=>[s.id,s.title,s.artist,s.album,s.genre,s.language,s.cover,s.file,s.plays,s.updatedAt]).sort((a,b)=>String(a[0]).localeCompare(String(b[0]))))}
+async function refreshData({silent=false}={}){
+  const email=encodeURIComponent(user);
+  const [nextSongs,nextPlaylists,stats]=await Promise.all([
+    api('/api/songs'),
+    api('/api/playlists?userEmail='+email),
+    api('/api/user/stats?userEmail='+email).catch(()=>null)
+  ]);
+  const normalizedSongs=Array.isArray(nextSongs)?nextSongs:[];
+  const normalizedPlaylists=Array.isArray(nextPlaylists)?nextPlaylists:[];
+  const changed=catalogSignature(normalizedSongs)!==lastCatalogSignature || JSON.stringify(normalizedPlaylists)!==JSON.stringify(playlists);
+  songs=normalizedSongs;
+  playlists=normalizedPlaylists;
+  lastCatalogSignature=catalogSignature(songs);
+  if(stats){listened=Number(stats.listeningSeconds||listened);userEvents=Array.isArray(stats.events)?stats.events:[];localStorage.setItem('listenedSeconds:'+user,String(listened))}
+  if(!silent||changed)render();
+  // Run legacy migration once, after the first useful paint.
+  if(!downloadMigrationStarted){downloadMigrationStarted=true;const run=()=>migrateLegacyDownloads().catch(()=>{});if(window.requestIdleCallback) window.requestIdleCallback(run,{timeout:2500}); else setTimeout(run,1200);}
+  return {songs,playlists,changed};
+}
+
+function nav(p,ic,label){return `<button class="nav ${page===p?'active':''}" onclick="go('${p}')"><span class="ico">${svg(ic)}</span><span>${label}</span></button>`}
+function shell(){const canSeeAdmin=owner||ownerCandidate;return `<aside class="side"><div class="brand"><span class="logo" aria-label="SYNTH AUDIO logo"></span><b>SYNTH AUDIO</b></div><div class="group">DISCOVER</div>${nav('home','home','Home')}${nav('search','search','Search')}<div class="group">YOUR LIBRARY</div>${nav('library','library','Library')}${nav('favorites','heart','Favorites')}${nav('recent','clock','Recently Played')}${nav('playlists','playlist','Playlists')}${nav('downloads','download','Downloads')}${nav('activityStats','activity','Activity')}<div class="group">GENERAL</div>${nav('settings','settings','Settings')}${canSeeAdmin?nav('admin','shield','Admin'):''}<div class="profile" onclick="go('settings')" role="button" tabindex="0"><div class="avatar">${esc((user||'A')[0].toUpperCase())}</div><div class="profileText"><b>${esc(shownName())}</b><small><i></i> Online</small></div></div></aside><main id="main" class="main"><div class="topBar"><button class="headerSearch" onclick="go('search');setTimeout(()=>$('#search')?.focus(),60)">${svg('search')}<span>Search music...</span><kbd>Ctrl /</kbd></button>${canSeeAdmin?`<button class="topAdmin ${owner?'unlocked':''}" onclick="go('admin')" title="Open owner administration">${svg('shield')}<span>${owner?'Admin':'Owner Admin'}</span></button>`:''}</div><div class="mobileBrowseTabs" aria-label="Browse music"><button class="active" data-browse="songs" onclick="mobileBrowse('songs')">Songs</button><button data-browse="playlists" onclick="mobileBrowse('playlists')">Playlists</button><button data-browse="folders" onclick="mobileBrowse('folders')">Folders</button><button data-browse="artists" onclick="mobileBrowse('artists')">Artists</button><button data-browse="albums" onclick="mobileBrowse('albums')">Albums</button><button data-browse="genres" onclick="mobileBrowse('genres')">Genres</button></div><div id="pageContent"></div></main><div id="player"></div><nav class="mobileNav" aria-label="Mobile navigation">${[['home','home','Home'],['search','search','Search'],['library','library','Library'],['downloads','download','Downloads'],['playlists','playlist','Playlists']].map(x=>`<button class="mnav ${page===x[0]?'active':''}" onclick="go('${x[0]}')"><span>${svg(x[1])}</span>${x[2]}</button>`).join('')}<button class="mnav ${['favorites','recent','activityStats','settings','admin'].includes(page)?'active':''}" onclick="toggleMobileMore()" aria-haspopup="menu" aria-expanded="false"><span>${svg('more')}</span>More</button></nav><div id="mobileMoreMenu" class="mobileMoreMenu" hidden><button onclick="go('favorites')">${svg('heart')}<span>Favorites</span></button><button onclick="go('recent')">${svg('clock')}<span>Recently Played</span></button><button onclick="go('activityStats')">${svg('activity')}<span>Activity &amp; Stats</span></button><button onclick="go('settings')">${svg('settings')}<span>Settings</span></button>${canSeeAdmin?`<button onclick="go('admin')">${svg('shield')}<span>Admin</span></button>`:''}</div>`}
+
+function card(s,extra=''){const safeExtra=String(extra||'').trim().startsWith('<button')?String(extra).trim():'';return `<article class="card" data-play-direct="${esc(s.id)}" data-play-song="${esc(s.id)}" tabindex="0" role="button" onpointerup="activateSongTap(this,event)" aria-label="Play ${esc(s.title)}"><div class="coverWrap"><img src="${esc(cover(s))}" class="cover" loading="lazy" onerror="this.onerror=null;this.src=fallback">${safeExtra}<button class="cardplay" type="button" aria-label="Play" onclick="event.stopPropagation();playSong('${esc(s.id)}')">${svg('play')}</button><button class="dots" type="button" onclick="event.stopPropagation();more('${esc(s.id)}')">${svg('more')}</button></div><div class="title">${esc(s.title)}</div><div class="meta">${esc(s.artist||'Unknown Artist')}${s.language?' · '+esc(s.language):''}</div></article>`}
+function row(s,extra='',collectionIds=null){const ids=Array.isArray(collectionIds)?collectionIds:null;const playAttr=ids?`data-play-collection='${esc(JSON.stringify(ids))}'`:`data-play-direct='${esc(s.id)}'`;const rawExtra=String(extra||'').trim();const removeButton=rawExtra.startsWith('<button')?rawExtra:'';return `<div class="songrow" ${playAttr} data-play-song="${esc(s.id)}" data-song-id="${esc(s.id)}" role="button" tabindex="0" aria-label="Play ${esc(s.title)}" onpointerup="activateSongTap(this,event)"><img class="thumb" src="${esc(cover(s))}" onerror="this.onerror=null;this.src=fallback"><div class="grow"><div class="title">${esc(s.title)}</div><div class="meta">${esc(s.artist||'Unknown Artist')} · ${esc(s.album||'Single')}${s.language?' · '+esc(s.language):''}</div></div><div class="rowActions" data-song-actions="true"><button class="rowbtn ${favorites.has(s.id)?'fav':''}" type="button" onclick="event.stopPropagation();toggleFav('${esc(s.id)}')" title="Favorite" aria-label="Favorite">${favorites.has(s.id)?'♥':'♡'}</button>${removeButton}<button class="rowbtn downloadBtn" type="button" onclick="event.stopPropagation();toggleDownload('${esc(s.id)}')" title="Download or remove" aria-label="Download or remove">${svg('download')}</button><button class="rowbtn moreBtn" type="button" onclick="event.stopPropagation();more('${esc(s.id)}')" title="More" aria-label="More">${svg('more')}</button></div></div>`}
+
+function renderLogin(){document.body.classList.add('loginMode');$('#app').innerHTML=`<div class="login"><div class="loginbox"><div class="welcomeMark"><div class="welcomeBars"><i></i><i></i><i></i><i></i><i></i></div><span>SYNTH AUDIO</span></div><div class="loginGlow"></div><p class="eyebrow">YOUR MUSIC. EVERYWHERE.</p><h1>Welcome to SYNTH AUDIO</h1><p class="sub">Your personal MP3 library hosted on your own server, available across your devices.</p><div class="authTabs"><button id="loginTab" class="active" onclick="authMode('login')">Sign in</button><button id="registerTab" onclick="authMode('register')">Create account</button></div><input id="displayNameAuth" class="field" type="text" maxlength="40" autocomplete="nickname" placeholder="Your name (optional)" hidden><input id="email" class="field" type="email" autocomplete="username" placeholder="User ID / email"><input id="password" class="field" type="password" autocomplete="current-password" placeholder="Password (6+ characters)" onkeydown="if(event.key==='Enter')submitAuth()"><button id="authBtn" class="primary wide authBtn" onclick="submitAuth()">Sign in</button><p id="authMsg" class="loginHint"></p><p class="loginHint">Playlists, favorites and listening time follow your account.</p></div></div>`} 
+let authIsRegister=false;
+function authMode(mode){authIsRegister=mode==='register';$('#loginTab')?.classList.toggle('active',!authIsRegister);$('#registerTab')?.classList.toggle('active',authIsRegister);$('#authBtn').textContent=authIsRegister?'Create account':'Sign in';$('#password').setAttribute('autocomplete',authIsRegister?'new-password':'current-password');const n=$('#displayNameAuth');if(n)n.hidden=!authIsRegister;}
+async function submitAuth(){const e=normalizeEmail($('#email')?.value),pw=$('#password')?.value||'',msg=$('#authMsg'),btn=$('#authBtn');if(!e)return msg.textContent='Enter a valid email/user ID.';if(pw.length<6)return msg.textContent='Password must be at least 6 characters.';btn.disabled=true;msg.textContent=authIsRegister?'Creating your account…':'Signing you in…';try{const r=await api(authIsRegister?'/api/auth/register':'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:e,password:pw})});const returnedEmail=normalizeEmail(r?.email);const returnedToken=String(r?.token||'');if(!returnedEmail||!returnedToken)throw Error('The server returned an invalid login response.');user=returnedEmail;authToken=returnedToken;localStorage.setItem('synthUser',user);localStorage.setItem('synthAuthToken',authToken);displayName=authIsRegister?String($('#displayNameAuth')?.value||'').trim().replace(/\s+/g,' ').slice(0,40):String(localStorage.getItem('synthDisplayName:'+user)||'').trim().slice(0,40);localStorage.setItem('synthDisplayName:'+user,displayName);favorites=new Set(safeJSON('favorites:'+user,[]));recent=safeJSON('recent:'+user,[]);listened=Number(localStorage.getItem('listenedSeconds:'+user)||0);try{const c=await api('/api/config');ownerEmail=String(c.ownerEmail||'').trim().toLowerCase()}catch{}ownerCandidate=!!ownerEmail&&user===ownerEmail;await loadRemoteUserState();if(authIsRegister&&displayName){try{await api('/api/user/state',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({favorites:[...favorites],recent,displayName})})}catch{}}await refreshData();render();toast(authIsRegister?'Account created':'Welcome back')}catch(err){msg.textContent=err.message||'Could not sign in'}finally{btn.disabled=false}}
+let shellReady=false;
+function render(){
+  document.body.classList.remove('loginMode');
+  if(!user){renderLogin();shellReady=false;return}
+  ownerCandidate=!!ownerEmail&&user.trim().toLowerCase()===ownerEmail;
+  if(!shellReady || !$('#pageContent')){$('#app').innerHTML=shell();shellReady=true;document.body.classList.add('appEntering');setTimeout(()=>document.body.classList.remove('appEntering'),650);}
+  bindMiniPlayerEvents();
+  if(page.startsWith('group:')){
+    const kind=page.slice(6); renderGroupedCollection(kind==='artists'?'Artists':kind==='albums'?'Albums':'Genres',kind==='artists'?'artist':kind==='albums'?'album':'genre');
+  }else{
+    renderPage();renderPlayer();
+    const browseKey=page==='playlists'?'playlists':page==='downloads'?'folders':'songs';
+    setMobileBrowseActive(browseKey);
+    requestAnimationFrame(()=>{
+      const content=$('#pageContent');
+      if(content){
+        content.classList.remove('routeSwap');
+        void content.offsetWidth;
+        content.classList.add('routeSwap');
+      }
+    });
+  }
+}
+
+
+
+function verifySongActionMarkup(){
+  document.querySelectorAll('.songrow .rowActions').forEach(actions=>{
+    const labels=[...actions.querySelectorAll(':scope > button')].map(b=>b.getAttribute('aria-label')||'');
+    if(!labels.includes('Download or remove')||!labels.includes('More'))console.error('SYNTH AUDIO V65 action markup mismatch',labels);
+    const stray=[...actions.childNodes].filter(n=>n.nodeType===3&&/\S/.test(n.nodeValue||'')&&String(n.nodeValue).trim()!=='');
+    if(stray.length)console.error('SYNTH AUDIO V65 unexpected text node in song actions',stray.map(n=>n.nodeValue));
+  });
+}
+function renderPage(){const m=$('#pageContent');if(page==='home'){const r=recent.map(id=>songs.find(s=>s.id===id)).filter(Boolean),most=songs.slice().sort((a,b)=>(b.plays||0)-(a.plays||0)).filter(s=>(s.plays||0)>0),added=songs.slice(0,20),playEvents=userEvents.filter(e=>e.type==='play'),activeDays=new Set(userEvents.filter(e=>e.type==='play'||e.type==='listening').map(e=>String(e.at||'').slice(0,10)).filter(Boolean)).size,mostPlayed=most[0]||null,playedCount=playEvents.length||recent.length,barSeed=Math.max(1,Math.min(100,Math.round((listened%600)/6)));m.innerHTML=`<div class="homeHero"><div class="pageIntro"><span class="eyebrow">YOUR MUSIC SPACE</span><h1>Good music. Your way, ${esc(shownName())}.</h1><p class="sub">Find something you love, continue listening, or explore your library.</p></div><button class="browseHero" onclick="go('library')">Browse library <span>→</span></button></div><section class="homeListening"><div class="homeStats"><div class="homeStat listeningCard"><span class="statKicker">YOUR LISTENING</span><b>${mins(listened)}</b><small>Total listening time</small><div class="listenBars">${[34,50,41,61,47,57,30,44].map(v=>`<i style="height:${Math.max(18,Math.round(v*(.65+barSeed/180)))}%"></i>`).join('')}</div></div><div class="homeStat"><span class="statIcon">${svg('play')}</span><b>${playedCount}</b><small>Songs played</small><em>Across your activity</em></div><div class="homeStat"><span class="statIcon">${svg('clock')}</span><b>${activeDays}</b><small>Active days</small><em>Keep enjoying your music</em></div><div class="homeStat"><span class="statIcon">${svg('activity')}</span><b class="mostPlayedValue">${esc(mostPlayed?.title||'—')}</b><small>Most played</small><em>${esc(mostPlayed?.artist||'Start listening to build your history')}</em></div></div></section><section><div class="sectionhead"><h2>Recently Played</h2>${r.length?`<button onclick="go('recent')">See all ›</button>`:''}</div><div class="grid">${r.slice(0,6).map(card).join('')||'<p class="sub emptyText">Your listening history will appear here.</p>'}</div></section><section><div class="sectionhead"><h2>Your Playlists</h2><button onclick="go('playlists')">See all ›</button></div><div class="grid">${playlists.slice(0,4).map(playlistCard).join('')||'<p class="sub emptyText">Create your first playlist.</p>'}</div></section>`}
+else if(page==='search')m.innerHTML=`<div class="pageIntro"><h1>Search</h1><p class="sub">Find songs, artists, albums, genres and languages.</p></div><div class="searchbox">${svg('search')}<input id="search" placeholder="What do you want to play?" oninput="searchNow()" autocomplete="off"></div><div id="results" class="section"><p class="sub">Start typing to search your music.</p></div>`;
+else if(page==='library')m.innerHTML=`<div class="pageIntro"><h1>Your Library</h1><p class="sub">All music available to you.</p></div><div class="filterbar"><div class="tabs"><button class="active">Songs</button><button onclick="go('favorites')">Favorites</button><button onclick="go('playlists')">Playlists</button><button onclick="go('downloads')">Downloads</button></div><div class="libraryFilters"><select id="genreFilter" onchange="filterLibrary()"><option value="">All genres</option>${[...new Set(songs.map(s=>s.genre).filter(Boolean))].sort().map(x=>`<option>${esc(x)}</option>`).join('')}</select><select id="langFilter" onchange="filterLibrary()"><option value="">All languages</option>${[...new Set(songs.map(s=>s.language).filter(Boolean))].sort().map(x=>`<option>${esc(x)}</option>`).join('')}</select></div></div><div id="libraryList" class="list">${songs.map(row).join('')||'<p class="sub">No songs available yet.</p>'}</div>`;
+else if(page==='favorites')m.innerHTML=`<div class="pageIntro"><h1>Favorites</h1><p class="sub">Songs you saved for quick access.</p></div><div class="list">${songs.filter(s=>favorites.has(s.id)).map(row).join('')||'<p class="sub emptyText">Your favorite songs will appear here.</p>'}</div>`;
+else if(page==='recent')m.innerHTML=`<div class="pageIntro"><h1>Recently Played</h1><p class="sub">Your latest listening history.</p></div><div class="list">${recent.map(id=>songs.find(s=>s.id===id)).filter(Boolean).map(row).join('')||'<p class="sub emptyText">No listening history yet.</p>'}</div>`;
+else if(page==='downloads'){(async()=>{const meta=await getOfflineMetaCatalog();const orderedMeta=meta.filter(x=>x?.song?.id).sort((a,b)=>Number(a.downloadedAt||0)-Number(b.downloadedAt||0));const orderedIds=orderedMeta.map(x=>x.song.id);const ds=orderedIds.map(id=>songs.find(s=>s.id===id)).filter(Boolean);const empty='<div class="offlineEmpty"><div class="offlineIcon">'+svg('download')+'</div><h3>No downloads yet</h3><p>Download a song from Library and it will appear here even without internet.</p><button class="primary" onclick="go(\'library\')">Browse library</button></div>';m.innerHTML=`<div class="pageIntro"><h1>Downloads</h1><p class="sub">Available offline on this device · ${ds.length} song${ds.length===1?'':'s'}</p></div><div class="list">${ds.map(s=>row(s,'',orderedIds)).join('')||empty}</div>`})()}
+else if(page==='activityStats')renderActivity(m);
+else if(page==='playlists')m.innerHTML=`<div class="pageIntro splitIntro"><div><h1>Playlists</h1><p class="sub">Your personal collections.</p></div><button class="primary" onclick="newPlaylist()">＋ Create playlist</button></div><div class="grid playlistgrid">${playlists.map(playlistCard).join('')||'<p class="sub emptyText">Create a playlist to start.</p>'}</div>`;
+else if(page.startsWith('playlist:'))renderPlaylist(m,page.split(':')[1]);
+else if(page==='settings')m.innerHTML=`<div class="pageIntro"><span class="eyebrow">PERSONALIZE</span><h1>Settings</h1><p class="sub">Your account and SYNTH AUDIO preferences.</p></div><div class="accountLayout"><section class="accountCard"><div class="accountAvatar">${esc((user||'A')[0].toUpperCase())}</div><div class="accountIdentity"><span class="accountLabel">SIGNED IN</span><h2>${esc(shownName())}</h2><p>${esc(user||'Not signed in')}</p><span class="statusPill"><i></i> Online</span></div></section><section class="settings settingsClean"><div class="settingRow displayNameSetting nameEditorCard"><div><b>Your name</b><span>Choose the name you want SYNTH AUDIO to show. Your email stays your login ID.</span></div><div class="displayNameForm"><input id="displayNameInput" class="field" maxlength="40" value="${esc(displayName)}" placeholder="Enter your name" onkeydown="if(event.key==='Enter')saveDisplayName()"><button class="secondary" onclick="saveDisplayName()">Save name</button></div></div><div class="settingRow"><div><b>Account email</b><span>Your SYNTH AUDIO account identifier.</span></div><strong>${esc(user||'Not available')}</strong></div><div class="settingRow"><div><b>SYNTH AUDIO version</b><span>Running the current local app build.</span></div><strong>V65</strong></div><div class="settingRow"><div><b>Offline music</b><span>Downloaded songs remain available on this device.</span></div><span class="settingValue">${offlineDownloadCount} downloaded</span></div>${IS_NATIVE_APP?`<div class="settingRow serverSetting"><div><b>Server address</b><span>Address used by this phone app to reach SYNTH AUDIO.</span></div><div class="serverSettingForm"><input id="serverUrlInput" class="field" value="${esc(localStorage.getItem('synthServerUrl')||NATIVE_CONFIG_URL||'http://10.90.82.78:3000')}" inputmode="url" placeholder="http://192.168.1.10:3000"><button class="secondary" onclick="saveServerUrl()">Save</button></div></div>`:''}${owner?`<div class="settingRow ownerEnabled"><div><b>Owner access</b><span>Owner controls are currently unlocked for this account.</span></div><button class="secondary" onclick="go('admin')">Open Admin ${svg('shield')}</button></div>`:ownerCandidate?`<div class="settingRow ownerAccess"><div><b>Owner access</b><span>This is the registered owner account. Unlock the private Admin area with your owner key.</span></div><button class="primary" onclick="ownerGate()">Unlock Admin ${svg('shield')}</button></div>`:''}<div class="accountActions"><button class="secondary" onclick="logout()">Log out</button></div></section></div>`;
+else if(page==='admin')renderAdmin(m);verifySongActionMarkup()}
+function renderActivity(m){api('/api/user/stats?userEmail='+encodeURIComponent(user)).then(st=>{listened=Number(st.listeningSeconds||0);userEvents=Array.isArray(st.events)?st.events:[];localStorage.setItem('listenedSeconds:'+user,String(listened));const events=userEvents;m.innerHTML=`<div class="pageIntro"><h1>Activity</h1><p class="sub">See exactly how long you have listened.</p></div><div class="stats"><div class="stat accentStat listeningHero"><span>Total listening time</span><b>${mins(listened)}</b><small>${fmt(listened)} listened</small></div><div class="stat"><span>Sessions</span><b>${events.filter(e=>e.type==='play').length}</b><small>play actions</small></div><div class="stat"><span>Favorites</span><b>${favorites.size}</b><small>saved songs</small></div><div class="stat"><span>Downloads</span><b>${offlineDownloadCount}</b><small>on this device</small></div></div><section><div class="sectionhead"><h2>Recent activity</h2></div><div class="activitylist">${events.slice(0,30).map(activityItem).join('')||'<p class="sub emptyText">No activity yet.</p>'}</div></section>`}).catch(()=>{const events=userEvents||[];m.innerHTML=`<div class="pageIntro"><h1>Activity</h1><p class="sub">Your listening activity, available offline when cached.</p></div><div class="stats"><div class="stat accentStat listeningHero"><span>Total listening time</span><b>${mins(listened)}</b><small>${fmt(listened)} listened</small></div><div class="stat"><span>Sessions</span><b>${events.filter(e=>e.type==='play').length}</b><small>play actions</small></div><div class="stat"><span>Favorites</span><b>${favorites.size}</b><small>saved songs</small></div><div class="stat"><span>Downloads</span><b>${offlineDownloadCount}</b><small>on this device</small></div></div><section><div class="sectionhead"><h2>Recent activity</h2></div><div class="activitylist">${events.slice(0,30).map(activityItem).join('')||'<p class="sub emptyText">No activity yet.</p>'}</div></section>`})}
+function activityItem(e){const raw=String(e.detail||'');const sid=raw.split(' · ')[0];const s=songs.find(x=>x.id===sid)||null;const detail=s?.title||raw||'Activity';return `<div class="activityItem"><div class="activityIcon">${svg(e.type==='play'?'play':e.type==='listening'?'activity':'playlist')}</div><div class="grow"><b>${esc(e.type.replaceAll('_',' '))}</b><span>${esc(detail)}</span></div><time>${new Date(e.at).toLocaleString()}</time></div>`}
+function playlistCard(p){const s=songs.find(x=>p.songIds?.includes(x.id));return `<article class="card" onclick="go('playlist:${p.id}')"><img class="cover" src="${esc(p.image||cover(s||{}))}" loading="lazy" onerror="this.onerror=null;this.src=fallback"><div class="title">${esc(p.name)}</div><div class="meta">${p.songIds?.length||0} songs</div></article>`}
+function renderPlaylist(m,id){const p=playlists.find(x=>x.id===id);if(!p){return go('playlists')}const orderedIds=(p.songIds||[]).map(String);const ss=orderedIds.map(x=>songs.find(s=>String(s.id)===x)).filter(Boolean);m.innerHTML=`<button class="back" onclick="go('playlists')">${svg('back')} Back to playlists</button><div class="playlisthead"><div class="playlistcover"><img src="${esc(p.image||cover(ss[0]||{}))}"></div><div class="playlistinfo"><div class="renameLine"><input id="playlistName" class="playlistname" value="${esc(p.name)}"><button class="secondary" onclick="renamePlaylist('${p.id}')">Save</button></div><p class="sub">${ss.length} songs</p><div class="actions"><button class="primary" onclick="playPlaylist('${p.id}')">${svg('play')} Play</button><button class="secondary" onclick="shufflePlaylist('${p.id}')">${svg('shuffle')} Shuffle</button><button class="secondary" onclick="addAllToQueue('${p.id}')">${svg('queue')} Add all to queue</button><button class="secondary" onclick="changePlaylistArtwork('${p.id}')">Artwork</button><button class="secondary dangerBtn" onclick="deletePlaylist('${p.id}')">Delete</button></div></div></div><div class="list playlistSongs">${ss.map(s=>row(s,`<button class="rowbtn danger" onclick="event.stopPropagation();removeSongFromPlaylist('${p.id}','${s.id}')" title="Remove from playlist">${svg('close')}</button>`,orderedIds)).join('')||'<p class="empty">This playlist is empty. Add songs from the library or search.</p>'}</div>`}
+function showCollection(name,ids){const ss=(ids||[]).map(id=>songs.find(s=>s.id===id)).filter(Boolean);$('#main').innerHTML=`<button class="back" onclick="go('home')">${svg('back')} Back</button><h1>${esc(name)}</h1><p class="sub">${ss.length} songs</p><div class="collectionActions">${ss.length?`<button class="primary" onclick='playCollection(${JSON.stringify(ss.map(s=>s.id))})'>${svg('play')} Play all</button><button class="secondary" onclick='shuffleCollection(${JSON.stringify(ss.map(s=>s.id))})'>${svg('shuffle')} Shuffle</button>`:''}</div><div class="list">${ss.map(row).join('')||'<p class="sub">Nothing here yet.</p>'}</div>`}
+let searchTimer=null;
+function searchNow(){
+  clearTimeout(searchTimer);
+  const input=$('#search');
+  searchTimer=setTimeout(()=>{
+    const q=(input?.value||'').toLowerCase().trim();
+    const out=q?songs.filter(s=>[s.title,s.artist,s.album,s.genre,s.language].join(' ').toLowerCase().includes(q)):songs;
+    const results=$('#results');if(!results)return;
+    results.innerHTML=`${q?`<div class="sectionhead"><h2>Results</h2><span class="resultCount">${out.length} songs</span></div>`:''}<div class="list">${out.map(row).join('')||'<p class="sub">No results found.</p>'}</div>`;
+  },120);
+}
+
+const normFilter=v=>String(v??'').trim().toLowerCase();
+function filterLibrary(){const g=normFilter($('#genreFilter')?.value),l=normFilter($('#langFilter')?.value);const out=songs.filter(s=>(!g||normFilter(s.genre)===g)&&(!l||normFilter(s.language)===l));const list=$('#libraryList');list.innerHTML=out.map(row).join('')||'<p class="sub">No songs match those filters.</p>'}
+function setMobileBrowseActive(key){document.querySelectorAll('.mobileBrowseTabs button').forEach(b=>b.classList.toggle('active',b.dataset.browse===key))}
+function mobileBrowse(kind){
+  if(kind==='songs'){setMobileBrowseActive('songs');return go('library')}
+  if(kind==='playlists'){setMobileBrowseActive('playlists');return go('playlists')}
+  if(kind==='folders'){setMobileBrowseActive('folders');return go('downloads')}
+  const field=kind==='artists'?'artist':kind==='albums'?'album':kind==='genres'?'genre':'';
+  if(!field)return go('library');
+  page='group:'+kind;
+  history.pushState({},'',location.pathname+'#'+page);
+  renderGroupedCollection(kind==='artists'?'Artists':kind==='albums'?'Albums':'Genres',field);
+}
+function renderGroupedCollection(title,field){
+  const m=$('#pageContent');if(!m)return;
+  const groups=[...new Set(songs.map(s=>String(s[field]||'Unknown').trim()||'Unknown'))].sort((a,b)=>a.localeCompare(b));
+  m.innerHTML=`<div class="pageIntro"><button class="back" onclick="go('library');setMobileBrowseActive('songs')">${svg('back')} Back to songs</button><h1>${esc(title)}</h1><p class="sub">${groups.length} ${title.toLowerCase()}</p></div><div class="groupBrowse">${groups.map(g=>{const list=songs.filter(s=>String(s[field]||'Unknown').trim()===g);return `<section class="groupSection"><div class="sectionhead"><h2>${esc(g)}</h2><span class="resultCount">${list.length} songs</span></div><div class="list">${list.map(row).join('')}</div></section>`}).join('')||'<p class="sub emptyText">No groups available yet.</p>'}</div>`;
+  setMobileBrowseActive(field==='artist'?'artists':field==='album'?'albums':'genres');
+}
+function toggleMobileMore(){const m=document.getElementById('mobileMoreMenu');if(!m)return;const open=m.hidden;m.hidden=!open;document.querySelector('.mobileNav .mnav:last-child')?.setAttribute('aria-expanded',open?'true':'false')}
+function closeMobileMore(){const m=document.getElementById('mobileMoreMenu');if(m)m.hidden=true;document.querySelector('.mobileNav .mnav:last-child')?.setAttribute('aria-expanded','false')}
+function go(p){closeMobileMore();if(p==='stats'||p==='activity')p='activityStats';if(p==='admin'&&!(owner&&ownerCandidate)){if(ownerCandidate){ownerGate();return}return go('home')}page=p;const hash=p.startsWith('playlist:')?'#playlist-'+p.slice(9):'#'+p;history.pushState({},'',location.pathname+hash);render()}
+window.addEventListener('popstate',()=>{const h=location.hash.replace(/^#/,'');if(h.startsWith('playlist-')){page='playlist:'+h.slice(9);render()}else if(h.startsWith('group:')){page=h;render()}else if(h==='playlists'){page='playlists';render()}else if(h==='activityStats'||h==='activity'||h==='stats'){page='activityStats';render()}else if(h==='admin'){page='admin';render()}else{page=h||'home';render()}});
+function login(){return submitAuth()}
+async function saveDisplayName(){const input=$('#displayNameInput');const next=String(input?.value||'').trim().replace(/\s+/g,' ').slice(0,40);displayName=next;localStorage.setItem('synthDisplayName:'+user,displayName);try{await api('/api/user/state',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({favorites:[...favorites],recent,displayName})});toast(displayName?'Name saved':'Name cleared');}catch{toast('Name saved on this device; server sync unavailable')}render();}
+function ownerGate(){if(!ownerCandidate&&!owner)return toast('Owner access is limited to the registered owner account');document.body.classList.remove('loginMode');const d=document.createElement('div');d.className='modal ownerModal';d.innerHTML=`<div class="modalbox ownerBox"><button class="modalClose" onclick="this.closest('.modal').remove()">${svg('close')}</button><div class="ownerIcon">${svg('shield')}</div><span class="ownerKicker">PRIVATE AREA</span><h2>Owner access</h2><p>Enter your SYNTH AUDIO owner key to open Administration.</p><label class="fieldLabel">Owner account</label><input id="ownerEmail" class="field" type="email" value="${esc(ownerEmail)}" readonly><label class="fieldLabel">Owner key</label><input id="ownerKey" class="field" type="password" autocomplete="current-password" placeholder="Enter owner key" onkeydown="if(event.key==='Enter')verifyOwner()"><button class="primary wide" onclick="verifyOwner()">Unlock Admin ${svg('shield')}</button><div id="ownerMsg" class="formMsg"></div></div></div>`;document.body.appendChild(d);setTimeout(()=>$('#ownerKey')?.focus(),60)}
+async function verifyOwner(){const e=normalizeEmail($('#ownerEmail')?.value),k=$('#ownerKey')?.value||'';const x=$('#ownerMsg');if(!e||!k){if(x)x.textContent='Enter your owner key.';return}const btn=document.querySelector('.ownerBox .primary');if(btn){btn.disabled=true;btn.classList.add('loading')}if(x)x.textContent='Verifying owner access…';try{const verified=await api('/api/admin/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:e,key:k})});owner=true;ownerKey=k;ownerToken=verified.token||'';ownerEmail=e;localStorage.setItem('synthOwnerKey',k);if(ownerToken)localStorage.setItem('synthOwnerToken',ownerToken);localStorage.setItem('synthOwnerEmail',e);if(!user){user=e;localStorage.setItem('synthUser',e);favorites=new Set();recent=[];listened=0}document.querySelector('.ownerModal')?.remove();location.hash='';page='admin';render();toast('Owner access verified')}catch{if(x)x.textContent='Owner authorization failed. Check the owner key and try again.';if(btn){btn.disabled=false;btn.classList.remove('loading')}}}
+function logout(){stopListenTimer();api('/api/auth/logout',{method:'POST'}).catch(()=>{});localStorage.removeItem('synthUser');localStorage.removeItem('synthAuthToken');localStorage.removeItem('synthOwnerKey');localStorage.removeItem('synthOwnerToken');localStorage.removeItem('synthOwnerEmail');user='';owner=false;ownerCandidate=false;ownerKey='';audio.pause();destroyNativePlayer();stopNativePolling();current=null;renderLogin()}
+function playSong(id){const s=songs.find(x=>x.id===id);if(!s)return;const i=songs.indexOf(s);queue=songs.slice();qIndex=i>=0?i:0;return startSong(s)}
+function playSongInCollection(id,ids){const ordered=(ids||[]).map(x=>songs.find(s=>s.id===x)).filter(Boolean);const s=ordered.find(x=>x.id===id)||songs.find(x=>x.id===id);if(!s)return;queue=ordered.length?ordered:songs.slice();const i=queue.indexOf(s);qIndex=i>=0?i:0;return startSong(s)}
+function playCollection(ids){queue=ids.map(id=>songs.find(s=>s.id===id)).filter(Boolean);if(!queue.length)return;qIndex=0;startSong(queue[0])}
+function shuffleCollection(ids){queue=ids.map(id=>songs.find(s=>s.id===id)).filter(Boolean).sort(()=>Math.random()-.5);qIndex=0;startSong(queue[0])}
+let offlineUrls=new Map();
+const IDB_NAME='synth-audio-offline',IDB_STORE='tracks',IDB_META='metadata';
+function offlineDB(){return new Promise((resolve,reject)=>{const r=indexedDB.open(IDB_NAME,3);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(IDB_STORE))r.result.createObjectStore(IDB_STORE);if(!r.result.objectStoreNames.contains(IDB_META))r.result.createObjectStore(IDB_META)};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
+async function getOffline(id){try{const db=await offlineDB();return await new Promise((resolve,reject)=>{const q=db.transaction(IDB_STORE,'readonly').objectStore(IDB_STORE).get(id);q.onsuccess=()=>resolve(q.result||null);q.onerror=()=>reject(q.error)})}catch{return null}}
+async function putOffline(id,blob,meta={}){const db=await offlineDB();return new Promise((resolve,reject)=>{const tx=db.transaction([IDB_STORE,IDB_META],'readwrite');tx.objectStore(IDB_STORE).put(blob,id);tx.objectStore(IDB_META).put(meta,id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}
+async function deleteOffline(id){try{const db=await offlineDB();await new Promise((resolve,reject)=>{const tx=db.transaction([IDB_STORE,IDB_META],'readwrite');tx.objectStore(IDB_STORE).delete(id);tx.objectStore(IDB_META).delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});if(offlineUrls.has(id)){URL.revokeObjectURL(offlineUrls.get(id));offlineUrls.delete(id)}}catch{}}
+async function getOfflineMeta(id){try{const db=await offlineDB();return await new Promise((resolve,reject)=>{const q=db.transaction(IDB_META,'readonly').objectStore(IDB_META).get(id);q.onsuccess=()=>resolve(q.result||null);q.onerror=()=>reject(q.error)})}catch{return null}}
+async function getOfflineMetaCatalog(){try{const db=await offlineDB();return await new Promise((resolve,reject)=>{const out=[];const q=db.transaction(IDB_META,'readonly').objectStore(IDB_META).openCursor();q.onsuccess=()=>{const c=q.result;if(!c)return resolve(out);out.push(c.value);c.continue()};q.onerror=()=>reject(q.error)})}catch{return []}}
+async function hasOffline(id){return !!(await getOffline(id))}
+async function mergeOfflineCatalog(){const meta=await getOfflineMetaCatalog();offlineIds=new Set();for(const item of meta){const s=item?.song;if(!s?.id)continue;offlineIds.add(s.id);const idx=songs.findIndex(x=>x.id===s.id);if(idx<0)songs.push({...s,offlineOnly:true});else songs[idx]={...songs[idx],...s};try{const blob=await getOffline(s.id);if(blob&&!offlineUrls.has(s.id))offlineUrls.set(s.id,URL.createObjectURL(blob))}catch{}}offlineDownloadCount=offlineIds.size;return meta}
+// Native background playback is enabled only inside Capacitor. Browser/Electron keeps the existing HTML audio engine.
+const nativeCap=window.Capacitor;
+const nativeAudio=window.SYNTH_NATIVE_AUDIO||(()=>{try{return nativeCap?.registerPlugin?.('AudioPlayer')||null}catch{return null}})();
+const nativeMode=()=>!!(nativeAudio&&nativeCap?.isNativePlatform?.());
+const NATIVE_AUDIO_ID='synth-main';
+let nativeReady=false,nativePlaying=false,nativeDuration=0,nativeTime=0,nativeListenersBound=false,nativePolling=null,nativeTransitioning=false;
+function playbackPaused(){return nativeMode()&&nativeReady?!nativePlaying:audio.paused}
+function playbackTime(){return nativeMode()&&nativeReady?nativeTime:(Number(audio.currentTime)||0)}
+function playbackDuration(){return nativeMode()&&nativeReady?nativeDuration:(Number(audio.duration)||0)}
+function nativeSource(s){return resourceUrl(s?.file,{forNative:true})}
+async function destroyNativePlayer(){if(!nativeMode())return;try{if(nativeReady)await nativeAudio.stop({audioId:NATIVE_AUDIO_ID})}catch{}try{if(nativeReady)await nativeAudio.destroy({audioId:NATIVE_AUDIO_ID})}catch{}nativeReady=false;nativePlaying=false;nativeDuration=0;nativeTime=0}
+function startNativePolling(){if(nativePolling||!nativeMode())return;nativePolling=setInterval(async()=>{if(!nativeReady)return;try{const r=await nativeAudio.getCurrentTime({audioId:NATIVE_AUDIO_ID});nativeTime=Number(r?.currentTime)||0}catch{}const r=document.querySelector('#seek');if(r&&nativeDuration)r.value=nativeTime/nativeDuration*100;const t=document.querySelector('#cur');if(t)t.textContent=fmt(nativeTime);const f=document.querySelector('#fpcurr');if(f)f.textContent=fmt(nativeTime);const fp=document.querySelector('#fpseek');if(fp&&nativeDuration)fp.value=nativeTime/nativeDuration*100;updateMediaPosition()},250)}
+function stopNativePolling(){if(nativePolling){clearInterval(nativePolling);nativePolling=null}}
+async function bindNativeListeners(){
+  if(!nativeMode()||nativeListenersBound)return;
+  nativeListenersBound=true;
+  try{await nativeAudio.onAudioReady({audioId:NATIVE_AUDIO_ID},async()=>{
+    try{const r=await nativeAudio.getDuration({audioId:NATIVE_AUDIO_ID});nativeDuration=Number(r?.duration)||0}catch{}
+    renderPlayer();
+  })}catch(e){console.error('native onAudioReady registration failed',e)}
+  try{await nativeAudio.onAudioEnd({audioId:NATIVE_AUDIO_ID},async()=>{
+    if(nativeTransitioning)return;
+    const endedId=current?.id||'';
+    nativePlaying=false;stopListenTimer();
+    await handleTrackEnded('native',endedId);
+    updateMediaPlaybackState();renderPlayer();
+  })}catch(e){console.error('native onAudioEnd registration failed',e)}
+  try{await nativeAudio.onPlaybackStatusChange({audioId:NATIVE_AUDIO_ID},async r=>{
+    const status=String(r?.status||'');
+    if(status==='playing')nativePlaying=true;
+    else if(status==='paused'||status==='stopped')nativePlaying=false;
+    if(nativePlaying)startListenTimer();else stopListenTimer();
+    updateMediaPlaybackState();
+    renderPlayer();
+  })}catch(e){console.error('native onPlaybackStatusChange registration failed',e)}
+  try{await nativeAudio.onAppGainsFocus({audioId:NATIVE_AUDIO_ID},async()=>{
+    if(!nativeReady)return;
+    try{const r=await nativeAudio.isPlaying({audioId:NATIVE_AUDIO_ID});nativePlaying=!!r?.isPlaying}catch{}
+    try{const r=await nativeAudio.getCurrentTime({audioId:NATIVE_AUDIO_ID});nativeTime=Number(r?.currentTime)||nativeTime}catch{}
+    updateMediaPlaybackState();renderPlayer();
+  })}catch(e){console.error('native onAppGainsFocus registration failed',e)}
+}
+async function startNativeSong(s,requestToken){
+  if(!nativeMode())return false;
+  await bindNativeListeners();
+  const source=nativeSource(s);
+  if(!source)return false;
+  const token=requestToken||playRequest;
+  const stillCurrent=()=>token===playRequest&&current?.id===s.id;
+  try{
+    nativeTransitioning=true;
+    const artwork=cover(s)?resourceUrl(cover(s),{forNative:true}):undefined;
+    const meta={friendlyTitle:String(s.title||'SYNTH AUDIO'),artistName:String(s.artist||'Unknown Artist'),albumTitle:String(s.album||'SYNTH AUDIO'),artworkSource:artwork};
+    // Publish the new UI/lock-screen identity before preparing audio so artwork,
+    // title and progress never belong to different tracks.
+    updateMediaSession(s);
+    if(nativeReady){
+      // Keep one native notification player alive. changeAudioSource() is the
+      // plugin's supported path for changing tracks without destroy/recreate.
+      try{await nativeAudio.changeMetadata({audioId:NATIVE_AUDIO_ID,...meta})}catch{}
+      if(!stillCurrent()){nativeTransitioning=false;return false;}
+      await nativeAudio.changeAudioSource({audioId:NATIVE_AUDIO_ID,source});
+      if(!stillCurrent()){nativeTransitioning=false;return false;}
+      nativeDuration=0;nativeTime=0;nativePlaying=false;
+      await nativeAudio.initialize({audioId:NATIVE_AUDIO_ID});
+      if(!stillCurrent()){nativeTransitioning=false;return false;}
+      try{await nativeAudio.changeMetadata({audioId:NATIVE_AUDIO_ID,...meta})}catch{}
+    }else{
+      await nativeAudio.create({audioId:NATIVE_AUDIO_ID,audioSource:source,...meta,useForNotification:true,isBackgroundMusic:false,loop:false,showSeekBackward:true,showSeekForward:true,seekBackwardTime:10,seekForwardTime:10});
+      nativeReady=true;
+      nativePlaying=false;nativeTime=0;nativeDuration=0;
+      if(!stillCurrent())return false;
+      await nativeAudio.initialize({audioId:NATIVE_AUDIO_ID});
+      if(!stillCurrent()){nativeTransitioning=false;return false;}
+    }
+    startNativePolling();
+    await nativeAudio.play({audioId:NATIVE_AUDIO_ID});
+    if(!stillCurrent()){
+      nativeTransitioning=false;
+      try{await nativeAudio.pause({audioId:NATIVE_AUDIO_ID})}catch{}
+      return false;
+    }
+    nativePlaying=true;
+    startListenTimer();
+    updateMediaSession(s);
+    updateMediaPlaybackState();
+    updateMediaPosition();
+    renderPlayer();
+    nativeTransitioning=false;
+    return true;
+  }catch(e){
+    console.error('SYNTH AUDIO native playback error',e);
+    nativeTransitioning=false;
+    if(token===playRequest){
+      try{await nativeAudio.destroy({audioId:NATIVE_AUDIO_ID})}catch{}
+      nativeReady=false;nativePlaying=false;nativeDuration=0;nativeTime=0;stopNativePolling();
+    }
+    return false;
+  }
+}
+async function skip(seconds){const delta=Number(seconds)||0;if(nativeMode()&&nativeReady){try{await nativeAudio.seek({audioId:NATIVE_AUDIO_ID,timeInSeconds:Math.max(0,Math.min(playbackDuration(),playbackTime()+delta))});nativeTime=Math.max(0,Math.min(playbackDuration(),playbackTime()+delta));renderPlayer();return}catch{}}if(audio.duration)audio.currentTime=Math.max(0,Math.min(audio.duration,audio.currentTime+delta))}
+let playRequest=0;
+let trackEndBusy=false;
+let lastEndedSongId='';
+let lastEndedAt=0;
+let endedTransitionToken=0;
+async function handleTrackEnded(source='audio',endedId='') {
+  if(!current || trackEndBusy) return;
+  const expectedId=String(endedId||current.id);
+  // An ended event belongs to the track that actually ended. If another
+  // track has already become current, never advance that new track again.
+  if(String(current.id)!==expectedId)return;
+  const now=Date.now();
+  if(lastEndedSongId===expectedId && now-lastEndedAt<1500)return;
+  trackEndBusy=true; lastEndedSongId=expectedId; lastEndedAt=now;
+  const token=++endedTransitionToken;
+  try {
+    await next(expectedId, token);
+  } finally {
+    if(token===endedTransitionToken) trackEndBusy=false;
+  }
+}
+let remoteNetworkUsable=true;
+let publicInternetUsable=true;
+let remoteProbeTimer=null;
+let internetProbeTimer=null;
+async function probeRemoteNetwork(){
+  if(navigator.onLine===false){remoteNetworkUsable=false;return false}
+  try{
+    const r=await fetch(API_BASE+'/api/health?playbackCheck='+Date.now(),{cache:'no-store',credentials:'same-origin'});
+    remoteNetworkUsable=!!r.ok;
+  }catch{remoteNetworkUsable=false}
+  return remoteNetworkUsable;
+}
+async function probePublicInternet(){
+  if(navigator.onLine===false){publicInternetUsable=false;return false}
+  try{await fetch('https://www.gstatic.com/generate_204?ts='+Date.now(),{mode:'no-cors',cache:'no-store'});publicInternetUsable=true}catch{publicInternetUsable=false}
+  return publicInternetUsable;
+}
+function startRemoteNetworkProbe(){
+  if(remoteProbeTimer)return;
+  probeRemoteNetwork().catch(()=>{});probePublicInternet().catch(()=>{});
+  remoteProbeTimer=setInterval(()=>probeRemoteNetwork().catch(()=>{}),5000);
+  internetProbeTimer=setInterval(()=>probePublicInternet().catch(()=>{}),7000);
+  window.addEventListener('online',()=>{remoteNetworkUsable=true;publicInternetUsable=true;probeRemoteNetwork().catch(()=>{});probePublicInternet().catch(()=>{})},{passive:true});
+  window.addEventListener('offline',()=>{remoteNetworkUsable=false;publicInternetUsable=false},{passive:true});
+}
+
+let preloadedNextUrl='';
+function preloadNextSong(){
+  if(!queue.length||repeat==='one')return;
+  const nextIdx=shuffle?Math.floor(Math.random()*queue.length):((qIndex+1)%queue.length);
+  const nextS=queue[nextIdx];
+  if(!nextS||!nextS.file)return;
+  const url=resourceUrl(nextS.file);
+  if(!url||url===preloadedNextUrl)return;
+  preloadedNextUrl=url;
+  try{fetch(url,{headers:{'Range':'bytes=0-65535'},cache:'default',credentials:'same-origin'}).catch(()=>{})}catch{}
+}
+function startSong(s){
+  if(!s)return;
+  const request=++playRequest;
+  const isDownloaded=offlineIds.has(s.id);
+  const offlineSrc=offlineUrls.get(s.id)||'';
+  if(!isDownloaded && navigator.onLine===false){
+    toast('This song is not downloaded. Connect to the SYNTH AUDIO server or download it first.');
+    return;
+  }
+  const targetSrc=isDownloaded && offlineSrc ? offlineSrc : resourceUrl(s.file);
+  current=s;
+
+  // Immediately initiate playback in the same user gesture token!
+  let playPromise=null;
+  if(!nativeMode()){
+    applyVolumeToAudio();
+    if(audio.src!==targetSrc){
+      audio.src=targetSrc;
+    }
+    try{
+      playPromise=audio.play();
+    }catch(e){
+      console.warn('Sync play error',e);
+    }
+  }
+
+  // Defer all non-playback tasks to microtask so gesture token is not delayed by DOM or I/O
+  queueMicrotask(()=>{
+    if(request!==playRequest)return;
+    if(!playbackPaused())flushListening();
+    stopListenTimer();
+    nativePlaying=false;
+    nativeTime=0;
+    nativeDuration=0;
+    stopNativePolling();
+
+    renderPlayer();
+    updateMediaSession(s);
+    updateMediaPlaybackState();
+
+    if(playPromise){
+      playPromise.then(()=>{
+        if(request!==playRequest)return;
+        startListenTimer();
+        updateMediaPlaybackState();
+        renderPlayer();
+        preloadNextSong();
+      }).catch(e=>{
+        if(e?.name!=='AbortError'){
+          console.error('Browser playback failed',e);
+          diagnosePlaybackError(targetSrc).then(m=>toast(m)).catch(()=>toast('Tap Play to start playback'));
+        }
+        renderPlayer();
+      });
+    }
+
+    touchRecent(s.id);
+    sendEvent('play',s.id);
+
+    if(isDownloaded && !offlineSrc){
+      getOffline(s.id).then(blob=>{
+        if(blob && request===playRequest){
+          offlineUrls.set(s.id,URL.createObjectURL(blob));
+        }
+      }).catch(()=>{});
+    }
+
+    if(nativeMode()){
+      startNativeSong(s,request).then(ok=>{
+        if(ok)renderPlayer();
+        else toast('Native background audio could not start. The Android audio service is not ready.');
+      }).catch(()=>{});
+    }
+  });
+}
+function touchRecent(id){recent=[id,...recent.filter(x=>x!==id)].slice(0,50);saveUserState()}
+async function next(expectedEndedId='', transitionToken=0){
+  if(!queue.length)return;
+  if(expectedEndedId && String(current?.id)!==String(expectedEndedId))return;
+  if(transitionToken && transitionToken!==endedTransitionToken)return;
+  if(repeat==='one'){
+    if(nativeMode()&&nativeReady){
+      try{await nativeAudio.seek({audioId:NATIVE_AUDIO_ID,timeInSeconds:0});nativeTime=0;await nativeAudio.play({audioId:NATIVE_AUDIO_ID});nativePlaying=true;startListenTimer();renderPlayer()}catch(e){console.error('Repeat-one native playback failed',e)}
+    }else{try{audio.currentTime=0;await audio.play();renderPlayer()}catch(e){console.error('Repeat-one playback failed',e)}}
+    return;
+  }
+  if(shuffle){
+    let n=Math.floor(Math.random()*queue.length);
+    if(queue.length>1&&n===qIndex)n=(n+1)%queue.length;
+    qIndex=n;
+  }else{
+    qIndex++;
+    if(qIndex>=queue.length) qIndex=0;
+  }
+  await startSong(queue[qIndex]);
+}
+async function prev(){if(!queue.length)return;if(playbackTime()>3){await skip(-999999);return}qIndex=(qIndex-1+queue.length)%queue.length;await startSong(queue[qIndex])}
+async function togglePlay(){if(!current)return;if(nativeMode()&&nativeReady){try{if(nativePlaying){await nativeAudio.pause({audioId:NATIVE_AUDIO_ID});nativePlaying=false}else{await nativeAudio.play({audioId:NATIVE_AUDIO_ID});nativePlaying=true}renderPlayer()}catch{toast('Unable to change playback')}return}try{if(audio.paused)await audio.play();else audio.pause();renderPlayer()}catch{toast('Tap Play to start playback')}}
+function seek(v){const d=playbackDuration();if(!d)return;const t=d*Number(v)/100;if(nativeMode()&&nativeReady){nativeAudio.seek({audioId:NATIVE_AUDIO_ID,timeInSeconds:t}).then(()=>{nativeTime=t;renderPlayer()}).catch(()=>{});return}audio.currentTime=t}
+function cycleShuffle(){shuffle=!shuffle;toast(shuffle?'Shuffle on':'Shuffle off');renderPlayer()}
+function cycleRepeat(){repeat=repeat==='off'?'all':repeat==='all'?'one':'off';toast(repeat==='off'?'Repeat off':repeat==='all'?'Repeat all':'Repeat one');renderPlayer()}
+function clearSleepTimer(show=true){
+  if(sleepTimerId){clearTimeout(sleepTimerId);sleepTimerId=null}
+  sleepTimerEndsAt=0;sleepTimerMode='';
+  if(show)toast('Sleep timer cancelled');
+}
+async function finishSleepTimer(){
+  if(sleepTimerId){clearTimeout(sleepTimerId);sleepTimerId=null}
+  sleepTimerEndsAt=0;sleepTimerMode='';
+  try{
+    if(nativeMode()&&nativeReady){await nativeAudio.pause({audioId:NATIVE_AUDIO_ID});nativePlaying=false}
+    else if(audio){audio.pause()}
+  }catch(e){console.error('Sleep timer pause failed',e)}
+  stopListenTimer();renderPlayer();updateMediaPlaybackState();toast('Sleep timer ended');
+}
+function setSleepTimer(minutes){
+  const m=Number(minutes)||0;
+  if(!m){clearSleepTimer(false);return toast('Sleep timer cancelled')}
+  if(sleepTimerId)clearTimeout(sleepTimerId);
+  sleepTimerMode=m+' min';sleepTimerEndsAt=Date.now()+m*60000;
+  sleepTimerId=setTimeout(()=>finishSleepTimer(),m*60000);
+  toast('Sleep timer set for '+m+' minutes');
+}
+function sleepTimer(){
+  const d=document.createElement('div');d.className='modal';
+  const remaining=sleepTimerEndsAt?Math.max(0,Math.ceil((sleepTimerEndsAt-Date.now())/60000)):0;
+  d.innerHTML=`<div class="modalbox actionBox sleepTimerBox"><div class="modalTitle"><h3>Sleep timer</h3><button onclick="this.closest('.modal').remove()">${svg('close')}</button></div><p class="sub">Stop playback automatically after the selected time.</p>${remaining?`<div class="sleepTimerStatus">Active · about ${remaining} min remaining</div>`:''}<button onclick="setSleepTimer(15);this.closest('.modal').remove()">15 minutes</button><button onclick="setSleepTimer(30);this.closest('.modal').remove()">30 minutes</button><button onclick="setSleepTimer(45);this.closest('.modal').remove()">45 minutes</button><button onclick="setSleepTimer(60);this.closest('.modal').remove()">60 minutes</button><button onclick="setSleepTimer(90);this.closest('.modal').remove()">90 minutes</button>${remaining?`<button class="danger" onclick="clearSleepTimer();this.closest('.modal').remove()">Cancel timer</button>`:''}</div>`;
+  document.body.appendChild(d);
+}
+function musicMore(id){
+  const s=songs.find(x=>x.id===id)||current;
+  if(!s)return;
+  const d=document.createElement('div');d.className='modal';
+  d.innerHTML=`<div class="modalbox actionBox"><div class="modalTitle"><h3>Music options</h3><button onclick="this.closest('.modal').remove()">${svg('close')}</button></div><button onclick="playSong('${s.id}');this.closest('.modal').remove()">${svg('play')} Play</button><button onclick="nextAdd('${s.id}');this.closest('.modal').remove()">${svg('next')} Play next</button><button onclick="addToQueue('${s.id}');this.closest('.modal').remove()">${svg('queue')} Add to queue</button><button onclick="addToPlaylist('${s.id}');this.closest('.modal').remove()">${svg('playlist')} Add to playlist</button><button onclick="toggleFav('${s.id}');this.closest('.modal').remove()">${svg('heart')} ${favorites.has(s.id)?'Remove from favorites':'Add to favorites'}</button><button onclick="toggleDownload('${s.id}');this.closest('.modal').remove()">${svg('download')} Download / remove</button><button onclick="sleepTimer();this.closest('.modal').remove()">${svg('clock')} Sleep timer</button></div>`;
+  document.body.appendChild(d);
+}
+function queueView(){const d=document.createElement('div');d.className='modal';d.innerHTML=`<div class="modalbox queueBox"><div class="modalTitle"><h3>Queue</h3><button onclick="this.closest('.modal').remove()">${svg('close')}</button></div><div class="queueList">${queue.map((s,i)=>`<button class="queueItem ${i===qIndex?'current':''}" onclick="startFromQueue(${i});this.closest('.modal').remove()"><img src="${esc(cover(s))}"><span class="grow"><b>${esc(s.title)}</b><small>${esc(s.artist)}</small></span>${i===qIndex?'<em>Playing</em>':''}</button>`).join('')||'<p class="sub">Queue is empty.</p>'}</div></div>`;document.body.appendChild(d)}
+function startFromQueue(i){if(!queue[i])return;qIndex=i;startSong(queue[i])}
+function addToQueue(id){const s=songs.find(x=>x.id===id);if(s){queue.push(s);toast('Added to queue');renderPlayer()}}
+function nextAdd(id){const s=songs.find(x=>x.id===id);if(s){if(!queue.length){queue=[s];qIndex=0}else queue.splice(Math.min(qIndex+1,queue.length),0,s);toast('Added to play next');renderPlayer()}}
+function more(id){
+  const s=songs.find(x=>x.id===id);
+  if(!s)return;
+  const d=document.createElement('div');d.className='modal';
+  d.innerHTML=`<div class="modalbox actionBox"><div class="modalTitle"><h3>Song actions</h3><button onclick="this.closest('.modal').remove()">${svg('close')}</button></div><button onclick="playSong('${id}');this.closest('.modal').remove()">${svg('play')} Play</button><button onclick="nextAdd('${id}');this.closest('.modal').remove()">${svg('next')} Play next</button><button onclick="addToQueue('${id}');this.closest('.modal').remove()">${svg('queue')} Add to queue</button><button onclick="addToPlaylist('${id}');this.closest('.modal').remove()">${svg('playlist')} Add to playlist</button><button onclick="toggleFav('${id}');this.closest('.modal').remove()">${svg('heart')} ${favorites.has(id)?'Remove from favorites':'Add to favorites'}</button><button onclick="toggleDownload('${id}');this.closest('.modal').remove()">${svg('download')} Download / remove</button>${current?.id===id?`<button onclick="sleepTimer();this.closest('.modal').remove()">${svg('clock')} Sleep timer</button>`:''}</div>`;
+  document.body.appendChild(d);
+}
+function toggleMiniMore(){
+  const p=document.querySelector('#player .compactMini');
+  if(!p)return;
+  const open=p.classList.toggle('moreOpen');
+  p.querySelector('[data-mini-action=\"more\"]')?.setAttribute('aria-expanded',open?'true':'false');
+}
+
+function bindMiniPlayerEvents(){
+  if(bindMiniPlayerEvents.bound)return;
+  const host=$('#player');if(!host)return;
+  bindMiniPlayerEvents.bound=true;
+  host.addEventListener('click',async e=>{
+    const el=e.target.closest('[data-mini-action]');
+    if(!el||!host.contains(el))return;
+    e.preventDefault();e.stopPropagation();
+    const action=el.dataset.miniAction;
+    try{
+      if(action==='full-player'){fullPlayer();return}
+      if(action==='prev'){await prev();return}
+      if(action==='rewind'){await skip(-10);return}
+      if(action==='toggle-play'){await togglePlay();return}
+      if(action==='forward'){await skip(10);return}
+      if(action==='next'){await next();return}
+      if(action==='sync'){await fastSync();return}
+      if(action==='more'){toggleMiniMore(current?.id);return}
+    }catch(err){console.error('Mini-player action failed',err);toast('Action failed')}
+  },{passive:false});
+  host.addEventListener('click',async e=>{
+    const el=e.target.closest('[data-mini-more]');
+    if(!el||!host.contains(el))return;
+    e.preventDefault();e.stopPropagation();
+    const action=el.dataset.miniMore;
+    try{
+      if(action==='favorite'){toggleFav(current.id);toggleMiniMore(current.id);return}
+      if(action==='download'){await toggleDownload(current.id);toggleMiniMore(current.id);return}
+      if(action==='playlist'){await addToPlaylist(current.id);toggleMiniMore(current.id);return}
+      if(action==='queue'){queueView();toggleMiniMore(current.id);return}
+      if(action==='next'){nextAdd(current.id);toggleMiniMore(current.id);return}
+    }catch(err){console.error('Mini more action failed',err);toast('Action failed')}
+  },{passive:false});
+
+  host.addEventListener('input',e=>{
+    const el=e.target.closest('[data-mini-action="seek"]');
+    if(!el||!host.contains(el))return;
+    e.stopPropagation();seek(el.value);
+  },{passive:true});
+  host.addEventListener('keydown',e=>{
+    const el=e.target.closest('[data-mini-action="full-player"]');
+    if(el&&(e.key==='Enter'||e.key===' ')){e.preventDefault();fullPlayer();}
+  });
+}
+
+function hasOfflineSync(id){return offlineIds.has(id)}
+
+
+function saveServerUrl(){const v=normalizeServerUrl($('#serverUrlInput')?.value);if(!v)return toast('Enter a valid http:// or https:// server address');localStorage.setItem('synthServerUrl',v);toast('Server address saved. Reloading…');setTimeout(()=>location.reload(),150)}
+
+function toggleFav(id){favorites.has(id)?favorites.delete(id):favorites.add(id);saveUserState();render();toast(favorites.has(id)?'Added to favorites':'Removed from favorites')}
+async function newPlaylist(){const d=document.createElement('div');d.className='modal';d.innerHTML=`<div class="modalbox formBox"><div class="modalTitle"><h3>Create playlist</h3><button onclick="this.closest('.modal').remove()">${svg('close')}</button></div><input id="newPlaylistName" class="field" placeholder="Playlist name" maxlength="80"><label class="fileLabel">Optional artwork<input id="newPlaylistImage" type="file" accept="image/*"></label><button class="primary wide" onclick="createPlaylistFromForm()">Create playlist</button></div>`;document.body.appendChild(d);$('#newPlaylistName').focus()}
+let playlistCreateBusy=false;async function createPlaylistFromForm(){if(playlistCreateBusy)return;const name=$('#newPlaylistName')?.value.trim();if(!name)return toast('Enter a playlist name');playlistCreateBusy=true;const btn=document.querySelector('.formBox .primary');if(btn){btn.disabled=true;btn.textContent='Creating…'}let image='';const f=$('#newPlaylistImage')?.files?.[0];try{if(f)image=await fileData(f);const p=await api('/api/playlists',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,image,clientRequestId:makeId()})});if(!p?.id)throw Error('The server did not return a playlist ID.');playlists=await api('/api/playlists');document.querySelector('.modal')?.remove();page='playlists';render();go('playlist:'+p.id);toast('Playlist created')}catch(e){toast(e.message||'Could not create playlist')}finally{playlistCreateBusy=false;if(btn){btn.disabled=false;btn.textContent='Create playlist'}}}
+async function renamePlaylist(id){const name=$('#playlistName')?.value.trim();if(!name)return toast('Playlist name cannot be empty');try{const updated=await api('/api/playlists/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({name})});playlists=playlists.map(p=>p.id===id?updated:p);render();toast('Playlist renamed')}catch(e){toast(e.message||'Could not rename playlist')}}
+async function changePlaylistArtwork(id){const d=document.createElement('div');d.className='modal';d.innerHTML=`<div class="modalbox formBox"><div class="modalTitle"><h3>Playlist artwork</h3><button onclick="this.closest('.modal').remove()">${svg('close')}</button></div><input id="artFile" type="file" accept="image/*" class="field"><button class="primary wide" onclick="savePlaylistArtwork('${id}')">Save artwork</button></div>`;document.body.appendChild(d)}
+async function savePlaylistArtwork(id){const f=$('#artFile')?.files?.[0];if(!f)return toast('Choose an image');try{const image=await fileData(f);const updated=await api('/api/playlists/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({image})});playlists=playlists.map(p=>p.id===id?updated:p);document.querySelector('.modal')?.remove();render();toast('Artwork updated')}catch(e){toast(e.message||'Could not update artwork')}}
+async function deletePlaylist(id){if(!confirm('Delete this playlist?'))return;try{await api('/api/playlists/'+id,{method:'DELETE'});playlists=playlists.filter(p=>p.id!==id);go('playlists');toast('Playlist deleted')}catch(e){toast(e.message||'Could not delete playlist')}}
+function playPlaylist(id){const p=playlists.find(x=>x.id===id);if(!p)return;playCollection(p.songIds||[])}
+function shufflePlaylist(id){const p=playlists.find(x=>x.id===id);if(!p)return;shuffleCollection(p.songIds||[])}
+function addAllToQueue(id){const p=playlists.find(x=>x.id===id);if(!p)return;queue.push(...(p.songIds||[]).map(x=>songs.find(s=>s.id===x)).filter(Boolean));toast('Playlist added to queue')}
+async function addToPlaylist(id){if(!playlists.length)return newPlaylist();const d=document.createElement('div');d.className='modal';d.innerHTML=`<div class="modalbox actionBox"><div class="modalTitle"><h3>Add to playlist</h3><button onclick="this.closest('.modal').remove()">${svg('close')}</button></div>${playlists.map(p=>{const has=(p.songIds||[]).includes(id);return `<button onclick="${has?`removeSongFromPlaylist('${p.id}','${id}')`:`addSongToPlaylist('${p.id}','${id}')`};this.closest('.modal').remove()">${svg('playlist')} ${esc(p.name)} <span class="push">${has?'Remove':'Add'}</span></button>`}).join('')}</div>`;document.body.appendChild(d)}
+async function removeSongFromPlaylist(pid,sid){const p=playlists.find(x=>x.id===pid);if(!p)return;const nextIds=(p.songIds||[]).filter(x=>x!==sid);try{const updated=await api('/api/playlists/'+pid,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({songIds:nextIds})});playlists=playlists.map(x=>x.id===pid?updated:x);render();toast('Removed from playlist')}catch(e){toast(e.message||'Could not update playlist')}}
+async function addSongToPlaylist(pid,sid){const p=playlists.find(x=>x.id===pid);if(!p)return;const nextIds=[...(p.songIds||[])];if(nextIds.includes(sid))return toast('Song is already in this playlist');nextIds.push(sid);try{const updated=await api('/api/playlists/'+pid,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({songIds:nextIds})});playlists=playlists.map(x=>x.id===pid?updated:x);render();toast('Added to playlist')}catch(e){toast(e.message||'Could not update playlist')}}
+async function downloadSong(id){const s=songs.find(x=>x.id===id);if(!s)return;if(offlineIds.has(id))return toast('Already downloaded');const btn=document.querySelector(`.downloadBtn[onclick*="${id}"]`);if(btn)btn.disabled=true;toast('Downloading…');try{let r=await fetch('/api/songs/'+encodeURIComponent(id)+'/download',{cache:'no-store'});if(!r.ok){r=await fetch(resourceUrl(s.file),{cache:'no-store',credentials:'same-origin'})}if(!r.ok)throw Error('Server returned '+r.status);const ct=r.headers.get('content-type')||'';if(ct.includes('html')||ct.includes('json'))throw Error('Invalid audio response received');const b=await r.blob();if(b.size<1024)throw Error('Empty audio file');await putOffline(id,b,{song:s,downloadedAt:Date.now()});const cached=await getOffline(id);if(!cached)throw Error('Offline storage write failed');if(offlineUrls.has(id))URL.revokeObjectURL(offlineUrls.get(id));offlineUrls.set(id,URL.createObjectURL(cached));offlineIds.add(id);offlineDownloadCount=offlineIds.size;sendEvent('download',id);try{const cleanTitle=(s.title||'track').replace(/[<>:"/\\|?*]/g,'_');const cleanArtist=(s.artist||'artist').replace(/[<>:"/\\|?*]/g,'_');const fileName=`${cleanTitle} - ${cleanArtist}.mp3`;const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=fileName;document.body.appendChild(a);a.click();setTimeout(()=>{a.remove();URL.revokeObjectURL(a.href)},1500)}catch(dlErr){console.warn('Browser download trigger failed',dlErr)}toast('Downloaded: ready offline and in downloads');render();}catch(e){console.error('Download failed',e);const msg=String(e?.name||'').includes('Quota')||/storage/i.test(String(e?.message||''))?'Download failed: device storage is full. Remove an old download and try again.':String(e?.message||'').includes('404')?'Download failed: this song file is missing on the server. Re-upload it from Admin.':'Download failed. The audio file could not be saved on this device.';toast(msg)}finally{if(btn)btn.disabled=false}}
+async function toggleDownload(id){if(await hasOffline(id)){await deleteOffline(id);offlineIds.delete(id);offlineDownloadCount=offlineIds.size;sendEvent('download_removed',id);toast('Removed from downloads');render();return}return downloadSong(id)}
+function fileData(f){return new Promise((res,rej)=>{if(!f)return res('');const img=new Image();const r=new FileReader();r.onload=()=>{img.onload=()=>{const max=900,scale=Math.min(1,max/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.max(1,Math.round(img.width*scale));c.height=Math.max(1,Math.round(img.height*scale));const ctx=c.getContext('2d');ctx.drawImage(img,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.82))};img.onerror=rej;img.src=r.result};r.onerror=rej;r.readAsDataURL(f)})}
+function renderPlayer(){
+  const p=$('#player');
+  if(!p)return;
+  if(!current){p.innerHTML='';return}
+  const d=playbackDuration(),t=playbackTime(),pct=d?t/d*100:0,paused=playbackPaused();
+  updateMediaPlaybackState();
+  updateMediaPosition();
+  p.innerHTML=`<div class="bottom appleMini compactMini" role="region" aria-label="Mini player">
+    <div class="miniNow" data-mini-action="full-player" role="button" tabindex="0" aria-label="Open full player">
+      <div class="miniArtWrap"><img class="miniart" src="${esc(cover(current))}" onerror="this.onerror=null;this.src=fallback"><span class="miniPulse ${paused?'paused':'playing'}"><i></i><i></i><i></i></span></div>
+      <div class="grow miniCopy"><div class="title">${esc(current.title)}</div><div class="meta">${esc(current.artist||'Unknown Artist')}</div></div>
+    </div>
+    <div class="transport">
+      <button type="button" data-mini-action="prev" title="Previous" aria-label="Previous">${svg('prev')}</button>
+      <button type="button" data-mini-action="rewind" title="10 seconds back" aria-label="Back 10 seconds">${svg('rewind10')}</button>
+      <button type="button" class="bigplay" data-mini-action="toggle-play" title="Play/Pause" aria-label="${paused?'Play':'Pause'}">${paused?svg('play'):svg('pause')}</button>
+      <button type="button" data-mini-action="forward" title="10 seconds forward" aria-label="Forward 10 seconds">${svg('forward10')}</button>
+      <button type="button" data-mini-action="next" title="Next" aria-label="Next">${svg('next')}</button>
+    </div>
+    <div class="miniTools">
+      <div class="miniVolumeControl" title="Volume">
+        <button type="button" class="volumeBtn" onclick="toggleMute()" title="Mute / Unmute" aria-label="Mute / Unmute">${getVolumeIcon()}</button>
+        <input type="range" class="volumeSlider" min="0" max="100" value="${appMuted?0:Math.round(appVolume*100)}" oninput="setAppVolume(this.value)" aria-label="Volume">
+      </div>
+      <button type="button" data-mini-action="sync" title="Fast Sync" aria-label="Fast Sync">${svg('sync')}</button>
+      <button type="button" data-mini-action="more" title="More options" aria-label="More options" aria-expanded="false">${svg('more')}</button>
+    </div>
+    <div class="miniMorePanel" aria-label="More player options">
+      <button type="button" data-mini-more="favorite">${favorites.has(current.id)?'♥':'♡'} <span>${favorites.has(current.id)?'Unfavorite':'Favorite'}</span></button>
+      <button type="button" data-mini-more="download">${svg('download')} <span>${offlineIds.has(current.id)?'Remove download':'Download'}</span></button>
+      <button type="button" data-mini-more="playlist">${svg('playlist')} <span>Playlist</span></button>
+      <button type="button" data-mini-more="next">${svg('next')} <span>Play next</span></button>
+    </div>
+    <div class="progress"><span id="cur">${fmt(t)}</span><input id="seek" type="range" min="0" max="100" value="${pct}" data-mini-action="seek" aria-label="Seek"><span id="dur">${fmt(d)}</span></div>
+  </div>`;
+}
+
+function fullPlayer(){if(!current)return;const d=document.createElement('div');d.className='fullplayer';d.innerHTML=`<div class="fphead"><button onclick="this.closest('.fullplayer').remove()">${svg('close')}</button><b>Now Playing</b><button onclick="musicMore('${current.id}')" title="Music options" aria-label="Music options">${svg('more')}</button></div><div class="fpbody"><img src="${esc(cover(current))}" class="fpcover" onerror="this.onerror=null;this.src=fallback"><div class="fpmeta"><h2>${esc(current.title)}</h2><p>${esc(current.artist||'Unknown Artist')} · ${esc(current.album||'Single')}</p></div><div class="fpseek"><input id="fpseek" type="range" min="0" max="100" value="${playbackDuration()?playbackTime()/playbackDuration()*100:0}" oninput="seek(this.value)"><div><span id="fpcurr">${fmt(playbackTime())}</span><span>${fmt(playbackDuration())}</span></div></div><div class="fpcontrols"><button class="toggleSmall ${shuffle?'on':''}" onclick="cycleShuffle()">${svg('shuffle')}</button><button onclick="prev()">${svg('prev')}</button><button class="fpplay" onclick="togglePlay()">${playbackPaused()?svg('play'):svg('pause')}</button><button onclick="next()">${svg('next')}</button><button class="toggleSmall ${repeat!=='off'?'on':''}" onclick="cycleRepeat()">${svg('repeat')}</button></div><div class="fpvolume"><button class="volumeBtn" onclick="toggleMute()" title="Mute / Unmute" aria-label="Mute / Unmute">${getVolumeIcon()}</button><input type="range" class="volumeSlider" min="0" max="100" value="${appMuted?0:Math.round(appVolume*100)}" oninput="setAppVolume(this.value)" aria-label="Volume"><span class="volumeValue">${appMuted?0:Math.round(appVolume*100)}%</span></div><div class="fpsecondary"><button onclick="queueView()">${svg('queue')} Queue</button><button onclick="toggleFav('${current.id}')">${favorites.has(current.id)?'♥':'♡'} Favorite</button><button onclick="toggleDownload('${current.id}')">${svg('download')} Download / remove</button><button onclick="fastSync()">${svg('sync')} Fast Sync</button></div></div></div>`;document.body.appendChild(d)}
+let lastTick=Date.now();
+function flushListening(){if(!user||!current||playbackPaused())return;const now=Date.now();const sec=Math.max(0,Math.min(30,Math.floor((now-lastTick)/1000)));lastTick=now;if(sec>0){listened+=sec;saveUserState();api('/api/listening',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userEmail:user,songId:current.id,seconds:sec})}).catch(()=>{});updateVisibleListening()}}
+function startListenTimer(){if(listenTimer||!user)return;lastTick=Date.now();listenTimer=setInterval(()=>{if(!playbackPaused()&&current){const now=Date.now();const sec=Math.max(1,Math.min(5,Math.floor((now-lastTick)/1000)));lastTick=now;listened+=sec;saveUserState();api('/api/listening',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userEmail:user,songId:current.id,seconds:sec})}).catch(()=>{});updateVisibleListening()}},10000)}
+function stopListenTimer(){if(listenTimer){clearInterval(listenTimer);listenTimer=null}}
+function updateVisibleListening(){document.querySelectorAll('[data-listened]').forEach(n=>n.textContent=mins(listened))}
+function sendEvent(type,songId){api('/api/events',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type,songId,userEmail:user})}).catch(()=>{})}
+document.addEventListener('visibilitychange',()=>{if(document.hidden){flushListening();syncPlaybackEngineState()}else{lastTick=Date.now();syncPlaybackEngineState().finally(()=>{updateMediaSession(current);renderPlayer()})}});window.addEventListener('pageshow',()=>{syncPlaybackEngineState().finally(()=>{updateMediaSession(current);renderPlayer()})});window.addEventListener('pagehide',flushListening);window.addEventListener('beforeunload',flushListening);
+audio.addEventListener('play',()=>{updateMediaPlaybackState();updateMediaPosition();startListenTimer();renderPlayer()});audio.addEventListener('pause',()=>{if(!nativeReady){flushListening();stopListenTimer();updateMediaPlaybackState();renderPlayer()}});audio.addEventListener('ended',()=>{const endedId=current?.id||'';updateMediaPlaybackState();if(!nativeReady)handleTrackEnded('html',endedId)});audio.addEventListener('loadedmetadata',()=>{const d=$('#dur');if(d&&!nativeReady)d.textContent=fmt(audio.duration);updateMediaPosition()});audio.addEventListener('timeupdate',()=>{if(nativeReady)return;const r=$('#seek');if(r&&audio.duration)r.value=audio.currentTime/audio.duration*100;const t=$('#cur');if(t)t.textContent=fmt(audio.currentTime);const f=$('#fpcurr');if(f)f.textContent=fmt(audio.currentTime);const fp=$('#fpseek');if(fp&&audio.duration)fp.value=audio.currentTime/audio.duration*100;updateMediaPosition()});
+let lastSongActivationId='';
+let lastSongActivationAt=0;
+let touchStartX=0;
+let touchStartY=0;
+let touchMoved=false;
+function activateSongTap(el,event){
+  if(!el)return;
+  if(event){
+    if(event.target?.closest?.('button,a,input,select,textarea,[data-song-actions],.rowActions,.cardplay,.dots,.miniTools'))return;
+    if((event.pointerType==='touch'||event.pointerType==='pen')&&touchMoved)return;
+  }
+  const id=String(el.dataset.playDirect||el.dataset.playSong||'');
+  const ids=el.dataset.playCollection||'';
+  if(!id)return;
+  const now=Date.now();
+  // Touch/pointer activation can be followed by a synthetic click. Treat that
+  // click as the same gesture so one tap cannot start the track twice.
+  if(lastSongActivationId===id && now-lastSongActivationAt<600)return;
+  lastSongActivationId=id;
+  lastSongActivationAt=now;
+  if(ids){
+    try{const list=JSON.parse(ids);playSongInCollection(id,list)}
+    catch(err){console.error('Invalid collection playback data',err)}
+  }else{
+    playSong(id);
+  }
+}
+function bindSongActivation(){
+  if(bindSongActivation.bound)return;
+  bindSongActivation.bound=true;
+  const isActionTarget=e=>!!e.target?.closest?.('button,a,input,select,textarea,[data-song-actions],.rowActions,.cardplay,.dots,.miniTools');
+
+  document.addEventListener('pointerdown',e=>{
+    if(e.pointerType==='touch'||e.pointerType==='pen'){
+      touchStartX=e.clientX;
+      touchStartY=e.clientY;
+      touchMoved=false;
+    }
+  },{passive:true});
+
+  document.addEventListener('pointermove',e=>{
+    if(e.pointerType==='touch'||e.pointerType==='pen'){
+      if(Math.hypot(e.clientX-touchStartX,e.clientY-touchStartY)>12){
+        touchMoved=true;
+      }
+    }
+  },{passive:true});
+
+  const activate=e=>{
+    if(isActionTarget(e))return;
+    if((e.pointerType==='touch'||e.pointerType==='pen')&&touchMoved)return;
+    const el=e.target?.closest?.('[data-play-song]');
+    if(!el)return;
+    activateSongTap(el,e);
+  };
+  // Mobile: pointerup is reliable for a completed tap and avoids starting
+  // playback while the user is scrolling. The row also has an inline handler
+  // so dynamically-rendered rows work without another binding pass.
+  document.addEventListener('pointerup',e=>{
+    if(e.pointerType==='touch'||e.pointerType==='pen')activate(e);
+  },{passive:true});
+  // Desktop mouse / browsers without pointer events.
+  document.addEventListener('click',e=>{
+    if(e.pointerType==='mouse'||e.pointerType===''||e.pointerType==null)activate(e);
+  },{passive:true});
+  // Older mobile browsers without Pointer Events.
+  if(!window.PointerEvent){
+    let tX=0,tY=0,tMoved=false;
+    document.addEventListener('touchstart',e=>{if(e.touches&&e.touches[0]){tX=e.touches[0].clientX;tY=e.touches[0].clientY;tMoved=false}},{passive:true});
+    document.addEventListener('touchmove',e=>{if(e.touches&&e.touches[0]&&Math.hypot(e.touches[0].clientX-tX,e.touches[0].clientY-tY)>12){tMoved=true}},{passive:true});
+    document.addEventListener('touchend',e=>{if(!tMoved)activate(e)},{passive:true});
+  }
+  document.addEventListener('keydown',e=>{
+    if(e.key!=='Enter'&&e.key!==' ')return;
+    const el=e.target?.closest?.('[data-play-song]');
+    if(!el||isActionTarget(e))return;
+    e.preventDefault();activateSongTap(el,e);
+  });
+}
+
+function toast(t){const x=document.createElement('div');x.className='toast';x.textContent=t;document.body.appendChild(x);requestAnimationFrame(()=>x.classList.add('show'));setTimeout(()=>{x.classList.remove('show');setTimeout(()=>x.remove(),180)},2200)}
+async function renderAdmin(m){if(!owner||!ownerCandidate){if(ownerCandidate){ownerGate();return}return go('home')}let st;try{st=await api('/api/admin/stats',{headers:ownerToken?{'Authorization':'Bearer '+ownerToken}:{'x-admin-key':ownerKey}})}catch{owner=false;ownerToken='';localStorage.removeItem('synthOwnerToken');if(ownerCandidate){toast('Owner session refreshed failed. Unlock Admin again.');ownerGate();return}return go('home')}m.innerHTML=`<div class="adminPage"><div class="adminTopbar"><button class="adminBack" onclick="go('home')">${svg('home')}<span>Back to music</span></button><div class="adminTopIdentity"><span class="adminShield">${svg('shield')}</span><div><b>Owner Administration</b><small>${esc(ownerEmail)}</small></div></div><button class="secondary adminExport" onclick="exportData()">${svg('download')} Export</button></div><div class="adminHero"><div><span class="eyebrow">SYNTH AUDIO · OWNER ONLY</span><h1>Administration</h1><p class="sub">Manage your personal MP3 library, uploads and activity.</p></div><div class="adminHeroActions"><span class="ownerStatus"><i></i> Secure owner session</span><button class="primary" onclick="adminAdd()">${svg('upload')} Add music</button></div></div><div class="adminOverview"><div class="adminStatPrimary"><span>Music library</span><b>${st.songs}</b><small>songs available to users</small></div><div class="adminStat"><span>Storage used</span><b>${formatBytes(st.storageBytes)}</b><small>uploaded audio storage</small></div><div class="adminStat"><span>Listening time</span><b>${mins(st.listeningSeconds)}</b><small>total tracked listening</small></div><div class="adminStat"><span>Listeners</span><b>${st.users}</b><small>registered accounts</small></div></div><div class="adminTabs"><button class="active" onclick="adminTab(this,'manage')">${svg('library')} <span>Music library</span></button><button onclick="adminTab(this,'add')">${svg('upload')} <span>Add music</span></button><button onclick="adminTab(this,'delete')">${svg('trash')} <span>Delete music</span></button><button onclick="adminTab(this,'activity')">${svg('activity')} <span>Activity</span></button></div><div id="adminbody"></div></div>`;adminManage()}
+function adminTab(btn,tab){document.querySelectorAll('.adminTabs button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');if(tab==='manage')adminManage();else if(tab==='add')adminAdd();else if(tab==='delete')adminDelete();else if(tab==='activity')adminActivity()}
+function adminManage(){const b=$('#adminbody');if(!b)return;const list=songs.map(adminRow).join('');const empty=`<div class="adminEmpty"><div>${svg('library')}</div><h3>Your library is empty</h3><p>Use Add music to publish the first song.</p><button class="primary" onclick="adminAdd()">${svg('upload')} Add music</button></div>`;b.innerHTML=`<div class="adminPanel"><div class="adminPanelHead"><div><h2>Music library</h2><p class="sub">Every uploaded song shared with authorized users.</p></div><span class="countPill">${songs.length} songs</span></div><div class="adminSearchRow"><div class="searchbox">${svg('search')}<input placeholder="Search title, artist, album, language or genre..." oninput="filterAdmin(this.value)"></div></div><div id="adminsongs" class="list adminList">${list||empty}</div></div>`}
+function adminRow(s){return `<div class="songrow adminrow"><img class="thumb" src="${esc(cover(s))}" onerror="this.onerror=null;this.src=fallback"><div class="grow"><div class="title">${esc(s.title)}</div><div class="meta">${esc(s.artist||'Unknown Artist')} · ${esc(s.album||'Single')} · ${esc(s.language||'Unknown')} · ${esc(s.genre||'Other')}</div></div><button class="rowbtn" onclick="playSong('${s.id}')" title="Play">${svg('play')}</button><button class="rowbtn danger" onclick="adminDeleteSong('${s.id}')" title="Delete">${svg('trash')}</button></div>`}
+let adminSearchTimer=null;
+function filterAdmin(q){
+  clearTimeout(adminSearchTimer);adminSearchTimer=setTimeout(()=>{
+    q=String(q||'').toLowerCase().trim();const el=$('#adminsongs');if(!el)return;
+    const list=songs.filter(s=>[s.title,s.artist,s.album,s.language,s.genre].join(' ').toLowerCase().includes(q)).map(adminRow).join('');
+    el.innerHTML=list||'<div class="adminEmpty compact"><h3>No matching music</h3><p>Try another title, artist, album, language or genre.</p></div>';
+  },120);
+}
+
+function adminAdd(){const b=$('#adminbody');b.innerHTML=`<div class="adminPanel"><div class="adminPanelHead"><div><h2>Add music</h2><p class="sub">Choose your audio file. If it already contains cover artwork and music tags, SYNTH AUDIO will use them automatically.</p></div></div><div class="uploadBox easyUpload"><div id="dropZone" class="dropZone" onclick="$('#ufile').click()" ondragover="event.preventDefault();this.classList.add('dragging')" ondragleave="this.classList.remove('dragging')" ondrop="event.preventDefault();this.classList.remove('dragging');handleAudioDrop(event.dataTransfer.files)"><div class="uploadIcon">${svg('upload')}</div><h3>Drop your MP3 files here</h3><p>or click to choose an audio file</p><span class="dropHint">MP3 files · up to 250 MB</span><input id="ufile" type="file" accept="audio/*" hidden onchange="handleAudioFile(this.files)"></div><div id="selectedAudio" class="selectedAudio hidden"></div><div class="artworkNote"><span class="artworkCheck">✓</span><div><b>Existing artwork will be used</b><small>If your music file already has album art embedded, you do not need to upload it again.</small></div></div><details class="advancedUpload"><summary>Add or edit details</summary><div class="twocol"><label class="fieldLabel">Title <span class="optional">optional</span><input id="utitle" placeholder="Song title"></label><label class="fieldLabel">Artist <span class="optional">optional</span><input id="uartist" placeholder="Artist name"></label></div><div class="twocol"><label class="fieldLabel">Album <span class="optional">optional</span><input id="ualbum" placeholder="Album name"></label><label class="fieldLabel">Language <span class="optional">optional</span><input id="ulang" placeholder="Tamil, English..."></label></div><label class="fieldLabel">Genre <span class="optional">optional</span><input id="ugenre" placeholder="Melody, Pop, Rock..."></label><label class="fieldLabel">Custom artwork <span class="optional">optional</span><input id="ucov" type="file" accept="image/*"></label></details><button id="publishBtn" class="primary wide publishBtn" onclick="upload()" disabled>${svg('upload')} Add to MP3 library</button><div id="uploadMsg" class="formMsg"></div></div></div>`}
+function handleAudioDrop(files){handleAudioFile(files)}
+function handleAudioFile(files){const f=files?.[0];if(!f)return;const input=$('#ufile');if(input&&files instanceof FileList){try{input.files=files}catch{}}else if(input&&files?.length){try{const dt=new DataTransfer();dt.items.add(f);input.files=dt.files}catch{}}const box=$('#selectedAudio');if(box){box.classList.remove('hidden');box.innerHTML=`<span class="selectedIcon">${svg('play')}</span><div><b>${esc(f.name)}</b><small>${formatBytes(f.size)} · Ready to upload</small></div><button type="button" onclick="clearSelectedAudio(event)">${svg('close')}</button>`}const btn=$('#publishBtn');if(btn)btn.disabled=false;const title=$('#utitle');if(title&&!title.value)title.value=f.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').trim();toast('Music file selected')}
+function clearSelectedAudio(e){e?.stopPropagation();const input=$('#ufile');if(input)input.value='';const box=$('#selectedAudio');if(box){box.classList.add('hidden');box.innerHTML=''}const btn=$('#publishBtn');if(btn)btn.disabled=true}
+
+async function upload(){const f=$('#ufile')?.files?.[0];if(!f)return toast('Choose an audio file');const btn=$('#publishBtn');if(btn){btn.disabled=true;btn.classList.add('loading')}const msg=$('#uploadMsg');if(msg)msg.innerHTML=`<div class="uploadProgress"><span>Preparing ${formatBytes(f.size)}</span><b id="uploadPct">0%</b></div><div class="progressBar"><i id="uploadBar"></i></div>`;try{const qs=new URLSearchParams({filename:f.name,title:$('#utitle')?.value||'',artist:$('#uartist')?.value||'',album:$('#ualbum')?.value||'',language:$('#ulang')?.value||'',genre:$('#ugenre')?.value||''});const added=await new Promise((resolve,reject)=>{const x=new XMLHttpRequest();x.open('POST',API_BASE+'/api/admin/upload-stream?'+qs.toString());if(ownerToken)x.setRequestHeader('Authorization','Bearer '+ownerToken);else x.setRequestHeader('x-admin-key',ownerKey);x.upload.onprogress=e=>{if(!e.lengthComputable)return;const pct=Math.round(e.loaded/e.total*100);$('#uploadPct').textContent=pct+'%';$('#uploadBar').style.width=pct+'%';};x.onload=async()=>{try{const r=JSON.parse(x.responseText||'{}');if(x.status>=200&&x.status<300){resolve(r);return}if(x.status===401&&ownerKey&&await refreshOwnerSession()){const y=new XMLHttpRequest();y.open('POST',API_BASE+'/api/admin/upload-stream?'+qs.toString());y.setRequestHeader('Authorization','Bearer '+ownerToken);y.upload.onprogress=x.upload.onprogress;y.onload=()=>{try{const z=JSON.parse(y.responseText||'{}');if(y.status>=200&&y.status<300)resolve(z);else reject(Error(z.error||'Upload failed'))}catch{reject(Error('Upload failed'))}};y.onerror=()=>reject(Error('Network error during upload'));y.send(f);return}reject(Error(r.error||'Upload failed'))}catch{reject(Error('Upload failed'))}};x.onerror=()=>reject(Error('Network error during upload'));x.send(f)});songs=[added,...songs.filter(s=>s.id!==added.id)];if($('#ucov')?.files?.[0])await api('/api/admin/song-cover/'+added.id,{method:'POST',headers:{'Content-Type':'application/json',...(ownerToken?{'Authorization':'Bearer '+ownerToken}:{'x-admin-key':ownerKey})},body:JSON.stringify({cover:await fileData($('#ucov').files[0])})});if(msg)msg.textContent='Upload complete — music is available now.';toast('Music published successfully');adminManage()}catch(e){if(msg)msg.textContent='Upload failed: '+e.message;toast('Upload failed');if(btn){btn.disabled=false;btn.classList.remove('loading')}}}
+
+
+async function adminDeleteSong(id){if(!confirm('Delete this song from the shared catalog? This also removes it from playlists.'))return;try{await api('/api/admin/songs/'+id,{method:'DELETE',headers:{'x-admin-key':ownerKey}});songs=await api('/api/songs');adminManage();toast('Song deleted')}catch(e){toast(e.message)}}
+function adminDelete(){const b=$('#adminbody');if(!b)return;const list=songs.map(adminRow).join('');b.innerHTML=`<div class="adminPanel"><div class="adminPanelHead"><div><h2>Delete music</h2><p class="sub">Remove songs permanently from the shared server library.</p></div></div><div class="list adminList">${list||'<div class="adminEmpty"><h3>No music to delete</h3><p>Your shared library is currently empty.</p></div>'}</div></div>`}
+async function adminActivity(){const b=$('#adminbody');try{const st=await api('/api/admin/stats',{headers:ownerToken?{'Authorization':'Bearer '+ownerToken}:{'x-admin-key':ownerKey}});const events=st.events.map(activityItem).join('');b.innerHTML=`<div class="adminPanel"><div class="adminPanelHead"><div><h2>Activity overview</h2><p class="sub">A clear overview of listening and library activity.</p></div></div><div class="stats adminStats"><div class="stat"><span>Total listening</span><b>${mins(st.listeningSeconds)}</b><small>${fmt(st.listeningSeconds)} tracked</small></div><div class="stat"><span>Languages</span><b>${st.languages.length}</b><small>${esc(st.languages.join(', ')||'None yet')}</small></div><div class="stat"><span>Genres</span><b>${st.genres.length}</b><small>${esc(st.genres.join(', ')||'None yet')}</small></div><div class="stat"><span>Listeners</span><b>${st.users}</b><small>accounts with listening data</small></div></div><div class="activityHead"><h3>Recent activity</h3><span class="countPill">${st.events.length} events</span></div><div class="activitylist adminActivityList">${events||'<div class="adminEmpty compact"><h3>No activity yet</h3><p>Listening and library events will appear here.</p></div>'}</div></div>`}catch{toast('Could not load admin activity')}}
+function exportData(){const blob=new Blob([JSON.stringify({songs,playlists},null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='synth-audio-export.json';a.click();URL.revokeObjectURL(a.href)}
+function updateMediaSession(s){
+  if(!('mediaSession' in navigator)||!s)return;
+  try{
+    const art=cover(s);
+    navigator.mediaSession.metadata=new MediaMetadata({
+      title:String(s.title||'SYNTH AUDIO'),
+      artist:String(s.artist||'Unknown Artist'),
+      album:String(s.album||'SYNTH AUDIO'),
+      artwork:art?[{src:new URL(art,location.href).href,sizes:'512x512',type:'image/png'}]:[]
+    });
+    navigator.mediaSession.playbackState=nativeMode()&&nativeReady?(nativePlaying?'playing':'paused'):(audio.paused?'paused':'playing');
+  }catch(e){console.debug('Media Session metadata update skipped',e)}
+}
+async function syncPlaybackEngineState(){
+  if(nativeMode()&&nativeReady){
+    try{const r=await nativeAudio.isPlaying({audioId:NATIVE_AUDIO_ID});nativePlaying=!!r?.isPlaying}catch{}
+    try{const r=await nativeAudio.getCurrentTime({audioId:NATIVE_AUDIO_ID});nativeTime=Number(r?.currentTime)||nativeTime}catch{}
+  }else if(audio){
+    // If the browser audio engine and UI ever diverge, trust the actual audio
+    // source and reconcile current to it instead of rendering stale player state.
+    const actual=String(audio.currentSrc||audio.src||'');
+    if(actual){
+      const match=songs.find(song=>{
+        try{return resourceUrl(song.file)===actual}catch{return false}
+      });
+      if(match && (!current||String(current.id)!==String(match.id))) current=match;
+    }
+  }
+  if(current)updateMediaSession(current);
+  updateMediaPlaybackState();
+  updateMediaPosition();
+}
+async function fastSync(){
+  if(!current){toast('Nothing is playing yet');return}
+  try{
+    await syncPlaybackEngineState();
+    updateMediaSession(current);
+    renderPlayer();
+    toast('Player synced');
+  }catch(err){console.error('Fast Sync failed',err);toast('Fast Sync could not complete')}
+}
+function bindMediaSession(){
+  if(!('mediaSession' in navigator)||bindMediaSession.bound)return;
+  bindMediaSession.bound=true;
+  try{navigator.mediaSession.playbackState='none'}catch{}
+  const actions={
+    play:async()=>{if(!current)return;if(nativeMode()&&nativeReady){try{await nativeAudio.play({audioId:NATIVE_AUDIO_ID});nativePlaying=true;startListenTimer();updateMediaPlaybackState();renderPlayer()}catch{}}else{try{await audio.play();startListenTimer();updateMediaPlaybackState();renderPlayer()}catch{}}},
+    pause:async()=>{if(!current)return;if(nativeMode()&&nativeReady){try{await nativeAudio.pause({audioId:NATIVE_AUDIO_ID});nativePlaying=false;stopListenTimer();updateMediaPlaybackState();renderPlayer()}catch{}}else{audio.pause();stopListenTimer();updateMediaPlaybackState()}},
+    previoustrack:()=>prev(),
+    nexttrack:()=>next(),
+    seekbackward:e=>skip(-(Number(e?.seekOffset)||10)),
+    seekforward:e=>skip(Number(e?.seekOffset)||10),
+    seekto:e=>{if(e.seekTime!=null){const d=playbackDuration();if(d){const t=Math.max(0,Math.min(d,e.seekTime));if(nativeMode()&&nativeReady)nativeAudio.seek({audioId:NATIVE_AUDIO_ID,timeInSeconds:t}).then(()=>{nativeTime=t;updateMediaPosition();renderPlayer()}).catch(()=>{});else{audio.currentTime=t;updateMediaPosition();renderPlayer()}}}},
+    stop:async()=>{if(!current)return;if(nativeMode()&&nativeReady){try{await nativeAudio.pause({audioId:NATIVE_AUDIO_ID})}catch{}nativePlaying=false}else audio.pause();stopListenTimer();updateMediaPlaybackState();renderPlayer()}
+  };
+  for(const [name,fn] of Object.entries(actions)){try{navigator.mediaSession.setActionHandler(name,fn)}catch{}}
+}
+function updateMediaPlaybackState(){if(!('mediaSession' in navigator))return;try{navigator.mediaSession.playbackState=current?(playbackPaused()?'paused':'playing'):'none'}catch{}}
+function updateMediaPosition(){if(!('mediaSession' in navigator))return;const d=playbackDuration(),p=playbackTime();if(!current||!Number.isFinite(d)||d<=0||!Number.isFinite(p))return;try{if(typeof navigator.mediaSession.setPositionState==='function')navigator.mediaSession.setPositionState({duration:d,playbackRate:1,position:Math.max(0,Math.min(p,d))})}catch{}}
+let mediaSessionSyncTimer=null;
+function startMediaSessionSync(){
+  if(mediaSessionSyncTimer||!('mediaSession' in navigator))return;
+  mediaSessionSyncTimer=setInterval(()=>{
+    if(!current)return;
+    // Keep system media controls/position synchronized even when the page is hidden.
+    updateMediaPlaybackState();
+    updateMediaPosition();
+  },500);
+}
+bindSongActivation();
+function startLiveRefresh(){
+  if(startLiveRefresh.started)return;startLiveRefresh.started=true;bindMediaSession();startMediaSessionSync();
+  let refreshing=false,fallbackTimer=null;
+  const refresh=(force=false)=>{if(!user||!navigator.onLine||refreshing)return;if(document.hidden&&!force)return;refreshing=true;refreshData({silent:true}).then(({changed})=>{if(!changed)return;if(['home','library','downloads','favorites','recent','playlists','activityStats'].includes(page)||page.startsWith('playlist:')){renderPage();renderPlayer()}}).catch(()=>{}).finally(()=>{refreshing=false})};
+  const connect=()=>{
+    if(!user||!('EventSource' in window)||!navigator.onLine)return;
+    try{if(window.__synthEvents)try{window.__synthEvents.close()}catch{};
+      const es=new EventSource(API_BASE+'/api/events/stream');window.__synthEvents=es;
+      es.addEventListener('catalog',ev=>{try{const e=JSON.parse(ev.data||'{}');if(e.kind==='playlist'&&e.userEmail&&e.userEmail!==user)return;refresh(true)}catch{refresh(true)}});
+      es.addEventListener('song_updated',()=>refresh(true));
+      es.addEventListener('user_state',ev=>{try{const e=JSON.parse(ev.data||'{}');if(e.userEmail===user)loadRemoteUserState().catch(()=>{})}catch{}});
+      es.onerror=()=>{try{es.close()}catch{};if(navigator.onLine)setTimeout(connect,5000)};
+    }catch{}
+  };
+  fallbackTimer=setInterval(()=>refresh(false),15000);
+  window.addEventListener('focus',()=>refresh(true),{passive:true});document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh(true)});window.addEventListener('online',()=>{refresh(true);connect()},{passive:true});connect();
+}
+audio?.addEventListener('play',()=>{updateMediaPlaybackState();startListenTimer();renderPlayer()});
+audio?.addEventListener('pause',()=>{updateMediaPlaybackState();stopListenTimer();renderPlayer()});
+audio?.addEventListener('loadedmetadata',()=>renderPlayer());
+async function diagnosePlaybackError(src){if(navigator.onLine===false)return 'Offline: Connect to network or play downloaded songs';try{const r=await fetch(src,{method:'HEAD'});if(r.status===503||r.status===403)return 'B2 storage bandwidth or transaction cap reached. Check Backblaze Caps & Alerts.';if(r.status===404)return 'Song audio file not found on server.';if(r.status>=500)return 'Storage server error. Please try again.';}catch(err){return 'Network connection interrupted while reaching audio server.';}return 'The audio file could not be played. Tap Play to try again.';}
+audio?.addEventListener('error',async()=>{if(!current||nativeMode())return;const targetSrc=offlineIds.has(current.id)&&offlineUrls.get(current.id)?offlineUrls.get(current.id):resourceUrl(current.file);const msg=await diagnosePlaybackError(targetSrc);toast(msg);});
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='/'){e.preventDefault();go('search');setTimeout(()=>$('#search')?.focus(),60)}});
+window.addEventListener('error',e=>console.error('SYNTH AUDIO runtime error',e.error||e.message));
+window.addEventListener('unhandledrejection',e=>console.error('SYNTH AUDIO promise error',e.reason));
+init();startLiveRefresh();
+
+window.addEventListener('popstate',()=>{
+  const h=location.hash.replace(/^#/,'');
+  page=h.startsWith('playlist-')?'playlist:'+h.slice(9):(h||'home');
+  render();
+});
+
+/* SYNTH AUDIO v56 usability layer — additive only; existing features remain intact. */
+(function(){
+  const originalGo=window.go;
+  if(typeof originalGo==='function'){
+    window.go=function(p){
+      try{document.querySelector('#pageContent')?.classList.remove('routeSwap');}catch{}
+      const r=originalGo.apply(this,arguments);
+      requestAnimationFrame(()=>document.querySelector('#pageContent')?.classList.add('routeSwap'));
+      return r;
+    };
+  }
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){
+      const modal=document.querySelector('.modal');
+      if(modal)modal.remove();
+      const fp=document.querySelector('.fullplayer');
+      if(fp)fp.remove();
+    }
+  });
+  document.addEventListener('click',e=>{
+    const modal=e.target.closest('.modal');
+    if(modal && e.target===modal) modal.remove();
+  });
+  document.addEventListener('DOMContentLoaded',()=>{
+    document.body.setAttribute('data-app','synth-audio');
+  });
+  // Direct inline play handlers are attached to each song/card. This avoids duplicate touch/click handlers and preserves user activation for audio.play().
+})();
+
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible' && sleepTimerEndsAt && Date.now()>=sleepTimerEndsAt) finishSleepTimer();
+});
+window.addEventListener('click',e=>{const m=document.getElementById('mobileMoreMenu');if(m&&!m.hidden&&!e.target.closest('.mobileMoreMenu')&&!e.target.closest('.mobileNav .mnav:last-child'))closeMobileMore()},{passive:true});
+

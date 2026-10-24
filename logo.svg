@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="synthBg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#090a10"/>
+      <stop offset="50%" stop-color="#050608"/>
+      <stop offset="100%" stop-color="#020204"/>
+    </linearGradient>
+    <linearGradient id="cyanGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0ea5e9"/>
+    </linearGradient>
+    <linearGradient id="playGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <linearGradient id="purpleGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+  <!-- Background Squircle -->
+  <rect width="512" height="512" rx="120" fill="url(#synthBg)"/>
+  
+  <!-- Subtle ambient glow -->
+  <circle cx="256" cy="210" r="140" fill="#a855f7" fill-opacity="0.12" filter="url(#glow)"/>
+  <circle cx="210" cy="210" r="100" fill="#38bdf8" fill-opacity="0.15" filter="url(#glow)"/>
+
+  <!-- Logo Mark Graphic -->
+  <g transform="translate(0, -10)">
+    <!-- Bar 1 (Left outermost) -->
+    <rect x="128" y="186" width="18" height="48" rx="9" fill="#0284c7"/>
+    <!-- Bar 2 (Left inner) -->
+    <rect x="158" y="160" width="20" height="96" rx="10" fill="url(#cyanGrad)"/>
+    <!-- Bar 3 (Left tallest) -->
+    <rect x="190" y="132" width="22" height="152" rx="11" fill="url(#cyanGrad)"/>
+    
+    <!-- Center Play Button -->
+    <path d="M 224 162 C 224 154 233 149 240 153 L 286 199 C 293 203 293 213 286 217 L 240 263 C 233 267 224 262 224 254 Z" fill="url(#playGrad)"/>
+    
+    <!-- Bar 4 (Right tallest) -->
+    <rect x="300" y="132" width="22" height="152" rx="11" fill="url(#purpleGrad)"/>
+    <!-- Bar 5 (Right inner) -->
+    <rect x="334" y="160" width="20" height="96" rx="10" fill="url(#purpleGrad)"/>
+    <!-- Bar 6 (Right outermost) -->
+    <rect x="364" y="186" width="18" height="48" rx="9" fill="#7c3aed"/>
+  </g>
+
+  <!-- Typography -->
+  <!-- SYNTH -->
+  <text x="256" y="356" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, 'SF Pro Display', Inter, Montserrat, sans-serif" font-size="44" font-weight="800" letter-spacing="14">SYNTH</text>
+  
+  <!-- Line Left -->
+  <line x1="108" y1="388" x2="188" y2="388" stroke="#475569" stroke-width="2" stroke-linecap="round"/>
+  <!-- AUDIO -->
+  <text x="256" y="394" text-anchor="middle" fill="#94a3b8" font-family="system-ui, -apple-system, 'SF Pro Display', Inter, Montserrat, sans-serif" font-size="20" font-weight="600" letter-spacing="12">AUDIO</text>
+  <!-- Line Right -->
+  <line x1="324" y1="388" x2="404" y2="388" stroke="#475569" stroke-width="2" stroke-linecap="round"/>
+</svg>

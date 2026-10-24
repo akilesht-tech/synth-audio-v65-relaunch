@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Synth Audio V65 — Interactive Frequency & Waveform Visualizer</title>
+  <style>
+    :root {
+      --bg-primary: #07080b;
+      --bg-surface: #12141c;
+      --bg-card: rgba(22, 25, 36, 0.75);
+      --border-subtle: rgba(125, 59, 102, 0.22);
+      --accent-plum: #7d3b66;
+      --accent-plum-glow: rgba(125, 59, 102, 0.45);
+      --accent-burgundy: #6a2c3e;
+      --accent-indigo: #4c5584;
+      --accent-active: #7d3b66;
+      --text-main: #f5f0f3;
+      --text-muted: #9e929b;
+      --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background: var(--bg-primary);
+      color: var(--text-main);
+      font-family: var(--font-stack);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+
+    .visualizer-container {
+      width: 100%;
+      max-width: 860px;
+      background: var(--bg-card);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), 0 0 45px rgba(125, 59, 102, 0.12);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      position: relative;
+    }
+
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 16px;
+    }
+
+    .title-group h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .title-group p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .badge-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(125, 59, 102, 0.2);
+      border: 1px solid rgba(125, 59, 102, 0.4);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #e0b4cf;
+    }
+
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #7d3b66;
+      box-shadow: 0 0 8px #7d3b66;
+      animation: pulse 1.6s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.5; transform: scale(0.9); }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+
+    .canvas-wrapper {
+      position: relative;
+      width: 100%;
+      height: 280px;
+      background: rgba(7, 8, 11, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .track-overlay {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      pointer-events: none;
+      background: rgba(18, 20, 28, 0.7);
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .track-overlay-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .track-overlay-meta {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      align-items: center;
+    }
+
+    .control-card {
+      background: rgba(18, 20, 28, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .control-label {
+      font-size: 0.76rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 6px;
+    }
+
+    button {
+      cursor: pointer;
+      font-family: inherit;
+      border: none;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .btn {
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .btn.active {
+      background: var(--accent-active);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.25);
+      box-shadow: 0 4px 12px var(--accent-plum-glow);
+    }
+
+    .btn-play {
+      background: var(--accent-active);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.2);
+      width: 100%;
+      padding: 10px 16px;
+      font-size: 0.88rem;
+    }
+
+    .btn-play:hover {
+      filter: brightness(1.15);
+      transform: translateY(-1px);
+    }
+
+    .palette-selector {
+      display: flex;
+      gap: 8px;
+    }
+
+    .palette-dot {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      transition: transform 0.18s ease, border-color 0.18s ease;
+    }
+
+    .palette-dot:hover {
+      transform: scale(1.15);
+    }
+
+    .palette-dot.active {
+      border-color: #ffffff;
+      transform: scale(1.15);
+    }
+
+    .dot-plum { background: #7d3b66; box-shadow: 0 0 8px rgba(125, 59, 102, 0.5); }
+    .dot-burgundy { background: #6a2c3e; box-shadow: 0 0 8px rgba(106, 44, 62, 0.5); }
+    .dot-indigo { background: #4c5584; box-shadow: 0 0 8px rgba(76, 85, 132, 0.5); }
+
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      appearance: none;
+      -webkit-appearance: none;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent-active);
+      cursor: pointer;
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+      transition: transform 0.15s ease;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.25);
+    }
+
+    @media (max-width: 600px) {
+      .visualizer-container {
+        padding: 16px;
+      }
+      .canvas-wrapper {
+        height: 210px;
+      }
+      .controls-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="visualizer-container" id="visualizerApp">
+    <div class="header-row">
+      <div class="title-group">
+        <h1>
+          <span>Synth Audio V65</span>
+        </h1>
+        <p>Interactive Real-Time Frequency Spectrum & Waveform Visualizer</p>
+      </div>
+      <div class="badge-live">
+        <span class="badge-dot" id="liveDot"></span>
+        <span id="liveStatus">ACTIVE SYNTH ENGINE</span>
+      </div>
+    </div>
+
+    <div class="canvas-wrapper">
+      <div class="track-overlay">
+        <div class="track-overlay-title" id="trackTitle">Obsidian Horizon (320kbps)</div>
+        <div class="track-overlay-meta" id="trackMeta">Aubergine & Plum Acoustic Profile • 48 kHz</div>
+      </div>
+      <canvas id="visCanvas"></canvas>
+    </div>
+
+    <div class="controls-grid">
+      <div class="control-card">
+        <div class="control-label">
+          <span>Engine Playback</span>
+          <span id="stateLabel">RUNNING</span>
+        </div>
+        <button id="playBtn" class="btn btn-play" onclick="togglePlayback()">
+          <span id="playIcon">⏸</span> <span id="playText">Pause Engine</span>
+        </button>
+      </div>
+
+      <div class="control-card">
+        <div class="control-label">
+          <span>Visualization Mode</span>
+        </div>
+        <div class="btn-group">
+          <button id="modeSpectrum" class="btn active" onclick="setMode('spectrum')">Bars</button>
+          <button id="modeWave" class="btn" onclick="setMode('wave')">Waveform</button>
+          <button id="modeRadial" class="btn" onclick="setMode('radial')">Radial</button>
+        </div>
+      </div>
+
+      <div class="control-card">
+        <div class="control-label">
+          <span>Obsidian Palette</span>
+          <span id="paletteName">Plum</span>
+        </div>
+        <div class="palette-selector">
+          <button id="palPlum" class="palette-dot dot-plum active" onclick="setPalette('plum')" title="Plum Accent"></button>
+          <button id="palBurgundy" class="palette-dot dot-burgundy" onclick="setPalette('burgundy')" title="Burgundy Accent"></button>
+          <button id="palIndigo" class="palette-dot dot-indigo" onclick="setPalette('indigo')" title="Indigo Accent"></button>
+        </div>
+      </div>
+
+      <div class="control-card">
+        <div class="control-label">
+          <span>Sensitivity / Gain</span>
+          <span id="gainVal">1.4x</span>
+        </div>
+        <input type="range" id="gainSlider" min="5" max="30" value="14" oninput="updateGain(this.value)">
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Self-contained Native Visualizer: Zero External Dependencies, 100% CSP Compliant
+    (function() {
+      const canvas = document.getElementById('visCanvas');
+      const ctx = canvas.getContext('2d');
+      let isPlaying = true;
+      let currentMode = 'spectrum';
+      let currentPalette = 'plum';
+      let gain = 1.4;
+      let animId = null;
+      let phase = 0;
+
+      const palettes = {
+        plum: { primary: '#7d3b66', secondary: '#9e4780', glow: 'rgba(125, 59, 102, 0.5)', rgb: [125, 59, 102] },
+        burgundy: { primary: '#6a2c3e', secondary: '#8a3a52', glow: 'rgba(106, 44, 62, 0.5)', rgb: [106, 44, 62] },
+        indigo: { primary: '#4c5584', secondary: '#6470ad', glow: 'rgba(76, 85, 132, 0.5)', rgb: [76, 85, 132] }
+      };
+
+      function resize() {
+        const rect = canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = Math.round(rect.width * dpr);
+        canvas.height = Math.round(rect.height * dpr);
+        ctx.scale(dpr, dpr);
+      }
+
+      window.addEventListener('resize', resize);
+      resize();
+
+      // Simulated frequency data generation with harmonic resonance
+      const numBins = 64;
+      const freqData = new Float32Array(numBins);
+      const targetData = new Float32Array(numBins);
+
+      function updateData() {
+        phase += 0.045;
+        for (let i = 0; i < numBins; i++) {
+          const harmonic = Math.sin(phase * 1.5 + i * 0.18) * 0.4 +
+                           Math.cos(phase * 2.8 - i * 0.08) * 0.35 +
+                           Math.sin(phase * 0.7 + i * 0.4) * 0.25;
+          const decay = Math.exp(-i / 36);
+          targetData[i] = Math.max(0.06, (harmonic + 1.0) * decay * gain * 0.45);
+          freqData[i] += (targetData[i] - freqData[i]) * 0.22;
+        }
+      }
+
+      function draw() {
+        if (!isPlaying) return;
+        updateData();
+
+        const rect = canvas.getBoundingClientRect();
+        const w = rect.width;
+        const h = rect.height;
+        ctx.clearRect(0, 0, w, h);
+
+        const pal = palettes[currentPalette];
+
+        if (currentMode === 'spectrum') {
+          drawSpectrum(w, h, pal);
+        } else if (currentMode === 'wave') {
+          drawWaveform(w, h, pal);
+        } else if (currentMode === 'radial') {
+          drawRadial(w, h, pal);
+        }
+
+        animId = requestAnimationFrame(draw);
+      }
+
+      function drawSpectrum(w, h, pal) {
+        const barWidth = Math.max(3, (w / numBins) - 3);
+        const grad = ctx.createLinearGradient(0, h, 0, 0);
+        grad.addColorStop(0, pal.primary);
+        grad.addColorStop(1, pal.secondary);
+
+        for (let i = 0; i < numBins; i++) {
+          const val = Math.min(1, freqData[i]);
+          const barHeight = Math.max(4, val * (h - 40));
+          const x = i * (barWidth + 3) + 6;
+          const y = h - barHeight - 12;
+
+          // Soft bar glow
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.roundRect(x, y, barWidth, barHeight, [3, 3, 0, 0]);
+          ctx.fill();
+
+          // Floating peak cap
+          const peakY = y - 4;
+          ctx.fillStyle = '#f5f0f3';
+          ctx.fillRect(x, Math.max(10, peakY), barWidth, 2);
+        }
+      }
+
+      function drawWaveform(w, h, pal) {
+        ctx.beginPath();
+        ctx.strokeStyle = pal.secondary;
+        ctx.lineWidth = 3;
+        ctx.shadowColor = pal.glow;
+        ctx.shadowBlur = 14;
+
+        const sliceWidth = w / numBins;
+        let x = 0;
+
+        for (let i = 0; i < numBins; i++) {
+          const v = freqData[i] * 0.8;
+          const y = (h / 2) + Math.sin(phase * 3 + i * 0.3) * (v * (h * 0.38));
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+          x += sliceWidth;
+        }
+
+        ctx.lineTo(w, h / 2);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Ambient baseline
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, h / 2);
+        ctx.lineTo(w, h / 2);
+        ctx.stroke();
+      }
+
+      function drawRadial(w, h, pal) {
+        const cx = w / 2;
+        const cy = h / 2;
+        const radius = Math.min(cx, cy) * 0.45;
+
+        ctx.save();
+        ctx.translate(cx, cy);
+
+        // Center orb
+        const radGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, radius);
+        radGrad.addColorStop(0, pal.secondary);
+        radGrad.addColorStop(1, 'rgba(7, 8, 11, 0.2)');
+        ctx.fillStyle = radGrad;
+        ctx.beginPath();
+        ctx.arc(0, 0, radius * 0.85, 0, Math.PI * 2);
+        ctx.fill();
+
+        for (let i = 0; i < numBins; i++) {
+          const angle = (i / numBins) * Math.PI * 2;
+          const len = freqData[i] * (radius * 0.9);
+          const x1 = Math.cos(angle) * radius;
+          const y1 = Math.sin(angle) * radius;
+          const x2 = Math.cos(angle) * (radius + len + 4);
+          const y2 = Math.sin(angle) * (radius + len + 4);
+
+          ctx.strokeStyle = (i % 2 === 0) ? pal.primary : pal.secondary;
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      // Public UI Controls
+      window.togglePlayback = function() {
+        isPlaying = !isPlaying;
+        const btn = document.getElementById('playBtn');
+        const icon = document.getElementById('playIcon');
+        const text = document.getElementById('playText');
+        const label = document.getElementById('stateLabel');
+        const dot = document.getElementById('liveDot');
+
+        if (isPlaying) {
+          icon.textContent = '⏸';
+          text.textContent = 'Pause Engine';
+          label.textContent = 'RUNNING';
+          dot.style.background = '#7d3b66';
+          draw();
+        } else {
+          icon.textContent = '▶';
+          text.textContent = 'Resume Engine';
+          label.textContent = 'PAUSED';
+          dot.style.background = '#4a4d5e';
+          cancelAnimationFrame(animId);
+        }
+      };
+
+      window.setMode = function(mode) {
+        currentMode = mode;
+        ['Spectrum', 'Wave', 'Radial'].forEach(m => {
+          const b = document.getElementById('mode' + m);
+          if (b) b.classList.remove('active');
+        });
+        const activeBtn = document.getElementById('mode' + mode.charAt(0).toUpperCase() + mode.slice(1));
+        if (activeBtn) activeBtn.classList.add('active');
+      };
+
+      window.setPalette = function(palKey) {
+        if (!palettes[palKey]) return;
+        currentPalette = palKey;
+        document.documentElement.style.setProperty('--accent-active', palettes[palKey].primary);
+        ['palPlum', 'palBurgundy', 'palIndigo'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.classList.remove('active');
+        });
+        const activeEl = document.getElementById('pal' + palKey.charAt(0).toUpperCase() + palKey.slice(1));
+        if (activeEl) activeEl.classList.add('active');
+        document.getElementById('paletteName').textContent = palKey.charAt(0).toUpperCase() + palKey.slice(1);
+      };
+
+      window.updateGain = function(val) {
+        gain = val / 10;
+        document.getElementById('gainVal').textContent = gain.toFixed(1) + 'x';
+      };
+
+      // Initial draw
+      draw();
+    })();
+  </script>
+</body>
+</html>

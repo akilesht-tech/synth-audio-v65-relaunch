@@ -1,0 +1,15 @@
+const CACHE='synth-audio-shell-v65r1';
+const ASSETS=['/','/index.html','/style.css?v=64r1','/app.js?v=64r1','/native-config.js?v=64r1','/native-audio-bridge.js?v=64r1','/manifest.json'];
+self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
+self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('synth-audio-shell-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))));
+self.addEventListener('fetch',e=>{
+  if(e.request.method!=='GET')return;
+  const u=new URL(e.request.url);
+  if(u.origin!==location.origin)return;
+  if(u.pathname.startsWith('/uploads/')||u.pathname.startsWith('/api/')||e.request.headers.has('range'))return;
+  if(e.request.mode==='navigate'||ASSETS.some(a=>new URL(a,location.origin).pathname===u.pathname)){
+    e.respondWith(fetch(e.request,{cache:'no-store'}).then(r=>{if(r.ok){const copy=r.clone();caches.open(CACHE).then(c=>c.put(e.request,copy)).catch(()=>{})}return r}).catch(()=>caches.match(e.request).then(r=>r||caches.match('/'))));
+    return;
+  }
+  e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));
+});

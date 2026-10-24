@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07080b">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SYNTH AUDIO">
+  <link rel="icon" type="image/png" href="/logo.png">
+  <link rel="icon" type="image/svg+xml" href="/logo.svg">
+  <link rel="apple-touch-icon" href="/logo-192.png">
+  <link rel="manifest" href="/manifest.json">
+  <title>SYNTH AUDIO — Personal MP3 Player</title>
+  <link rel="stylesheet" href="/style.css?v=65r2">
+</head>
+<body>
+  <div id="app">
+    <div class="initialAppShell" aria-hidden="true">
+      <div class="shellSidebar">
+        <div class="shellBrand"><div class="shellLogo"></div><div class="shellBrandText"></div></div>
+        <div class="shellNav"><div class="shellNavItem"></div><div class="shellNavItem"></div><div class="shellNavItem"></div></div>
+      </div>
+      <div class="shellMain">
+        <div class="shellHeader"><div class="shellSearch"></div><div class="shellAvatar"></div></div>
+        <div class="shellContent">
+          <div class="shellShelfTitle"></div>
+          <div class="shellGrid">
+            <div class="shellCard"></div><div class="shellCard"></div><div class="shellCard"></div>
+            <div class="shellCard"></div><div class="shellCard"></div><div class="shellCard"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <audio id="audio" preload="auto" playsinline webkit-playsinline></audio>
+  <script src="/capacitor.js"></script>
+  <script src="/native-config.js?v=64r1"></script>
+  <script src="/native-audio-bridge.js?v=64r1"></script>
+  <script src="/app.js?v=64r1"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js?v=65r3', { updateViaCache: 'none' })
+          .catch(err => console.warn('SW registration failed:', err));
+      });
+    }
+  </script>
+</body>
+</html>
